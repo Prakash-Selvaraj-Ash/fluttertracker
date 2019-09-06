@@ -31,7 +31,8 @@ class MapSample extends StatefulWidget {
   final SignalrServices signalrServices;
   MapSample(this.user, this.routeBloc, this.signalrServices);
   @override
-  State<MapSample> createState() => MapSampleState(user, routeBloc, signalrServices);
+  State<MapSample> createState() =>
+      MapSampleState(user, routeBloc, signalrServices);
 }
 
 class MapSampleState extends State<MapSample> {
@@ -60,6 +61,7 @@ class MapSampleState extends State<MapSample> {
     initGMap();
     initRoutes();
     initBusIcon();
+    initSignalR();
     super.initState();
   }
 
@@ -117,7 +119,6 @@ class MapSampleState extends State<MapSample> {
 
     for (var place in route.places) {
       if (place.id == user.place.id) {
-        
         final destinationMarker = Marker(
           markerId: MarkerId(user.place.name),
           position: LatLng(user.place.lattitude, user.place.longitude),
@@ -190,5 +191,14 @@ class MapSampleState extends State<MapSample> {
       poly.add(p);
     }
     return poly;
+  }
+
+  void initSignalR() {
+    signalrServices.initialize(_handleBroadCastMessage);
+    signalrServices.start(user.id);
+  }
+
+  void _handleBroadCastMessage(List<Object> parameters) {
+    print(parameters);
   }
 }
