@@ -6,19 +6,21 @@ import 'package:bus_tracker_client/src/route/models/map_models/direction_respons
 import 'package:bus_tracker_client/src/route/models/map_models/request/geocoordinate.dart';
 import 'package:bus_tracker_client/src/route/models/place_response.dart';
 import 'package:bus_tracker_client/src/route/models/route_response.dart';
+import 'package:bus_tracker_client/src/signalr/signal_services.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapTrack extends StatelessWidget {
   final UserResponse user;
   final RouteBloc routeBloc;
-  MapTrack(this.user, this.routeBloc);
+  final SignalrServices signalrServices;
+  MapTrack(this.user, this.routeBloc, this.signalrServices);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Google Maps Demo',
-      home: MapSample(user, routeBloc),
+      home: MapSample(user, routeBloc, signalrServices),
     );
   }
 }
@@ -26,22 +28,24 @@ class MapTrack extends StatelessWidget {
 class MapSample extends StatefulWidget {
   final UserResponse user;
   final RouteBloc routeBloc;
-  MapSample(this.user, this.routeBloc);
+  final SignalrServices signalrServices;
+  MapSample(this.user, this.routeBloc, this.signalrServices);
   @override
-  State<MapSample> createState() => MapSampleState(user, routeBloc);
+  State<MapSample> createState() => MapSampleState(user, routeBloc, signalrServices);
 }
 
 class MapSampleState extends State<MapSample> {
   BitmapDescriptor myIcon;
 
-  MapSampleState(this.user, this.routeBloc);
+  MapSampleState(this.user, this.routeBloc, this.signalrServices);
 
   final RouteBloc routeBloc;
   final Map<String, Marker> _markers = {};
   final Set<Polyline> _polylines = {};
   List<LatLng> latlng = [];
 
-  UserResponse user;
+  final UserResponse user;
+  final SignalrServices signalrServices;
   List<PlaceResponse> placeResponses;
   Completer<GoogleMapController> _controller = Completer();
 

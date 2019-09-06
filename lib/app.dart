@@ -4,6 +4,7 @@ import 'package:bus_tracker_client/src/authentication/ui/authentication_home.dar
 import 'package:bus_tracker_client/src/authentication/ui/authentication_login.dart';
 import 'package:bus_tracker_client/src/authentication/ui/authentication_signup.dart';
 import 'package:bus_tracker_client/src/route/blocs/route_bloc.dart';
+import 'package:bus_tracker_client/src/signalr/signal_services.dart';
 import 'package:bus_tracker_client/src/student_track/ui/map_track.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +14,10 @@ class App extends StatelessWidget {
   final RouteBloc routeBloc;
   final AuthenticationBloc authenticationBloc;
   final FirebaseMessaging firebaseMessaging;
+  final SignalrServices signalrServices;
 
   @provide
-  App(this.routeBloc, this.authenticationBloc, this.firebaseMessaging)
+  App(this.routeBloc, this.authenticationBloc, this.firebaseMessaging, this.signalrServices)
       : super();
 
   @override
@@ -36,7 +38,7 @@ class App extends StatelessWidget {
                 builder: (_) => AuthenticationLogin(authenticationBloc));
           case "track":
             return MaterialPageRoute(
-                builder: (_) => MapTrack(settings.arguments as UserResponse, routeBloc));
+                builder: (_) => MapTrack(settings.arguments as UserResponse, routeBloc, signalrServices));
           default:
             return MaterialPageRoute(builder: (_) => AuthenticationHome());
         }
@@ -47,7 +49,7 @@ class App extends StatelessWidget {
         '/signup': (context) => AuthenticationSignUp(
             routeBloc, authenticationBloc, firebaseMessaging),
         '/login': (context) => AuthenticationLogin(authenticationBloc),
-        '/track': (context) => MapTrack(null, routeBloc)
+        '/track': (context) => MapTrack(null, routeBloc, signalrServices)
       },
     );
   }

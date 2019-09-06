@@ -7,6 +7,7 @@ import 'package:bus_tracker_client/src/route/blocs/route_bloc.dart';
 import 'package:bus_tracker_client/src/route/blocs/route_provider.dart';
 import 'package:bus_tracker_client/src/route/resources/route_repository.dart';
 import 'package:bus_tracker_client/src/route/webclient/route_client.dart';
+import 'package:bus_tracker_client/src/signalr/signal_services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:inject/inject.dart';
 import 'package:http/http.dart' show Client;
@@ -50,4 +51,7 @@ class AppModule {
 
   @provide
   BlocBase authenticationBloc() => AuthenticationBloc(authenticationRepository());
+
+  @provide
+  SignalrServices signalRService() => SignalrServices();
 }
