@@ -10,43 +10,23 @@ import 'package:bus_tracker_client/src/signalr/signal_services.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-class MapTrack extends StatelessWidget {
+/*class MapTrackOld extends StatefulWidget {
   final UserResponse user;
   final RouteBloc routeBloc;
   final SignalrServices signalrServices;
-  MapTrack(this.user, this.routeBloc, this.signalrServices);
+  final RouteResponse _routeResponse;
+
+  MapTrackOld(this.user,this._routeResponse, this.routeBloc, this.signalrServices);
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Google Maps Demo',
-      home: MapSample(user, routeBloc, signalrServices),
-    );
-  }
+  State<MapTrackOld> createState() => _MapTrackOldState();
 }
 
-class MapSample extends StatefulWidget {
-  final UserResponse user;
-  final RouteBloc routeBloc;
-  final SignalrServices signalrServices;
-  MapSample(this.user, this.routeBloc, this.signalrServices);
-  @override
-  State<MapSample> createState() =>
-      MapSampleState(user, routeBloc, signalrServices);
-}
-
-class MapSampleState extends State<MapSample> {
+class _MapTrackOldState extends State<MapTrackOld> {
   BitmapDescriptor myIcon;
-
-  MapSampleState(this.user, this.routeBloc, this.signalrServices);
-
-  final RouteBloc routeBloc;
   final Map<String, Marker> _markers = {};
   final Set<Polyline> _polylines = {};
   List<LatLng> latlng = [];
-
-  final UserResponse user;
-  final SignalrServices signalrServices;
   List<PlaceResponse> placeResponses;
   Completer<GoogleMapController> _controller = Completer();
 
@@ -66,8 +46,8 @@ class MapSampleState extends State<MapSample> {
   }
 
   void initGMap() {
-    double lat = user.place.lattitude;
-    double long = user.place.longitude;
+    double lat = widget.user.place.lattitude;
+    double long = widget.user.place.longitude;
     _kGooglePlex = CameraPosition(
       target: LatLng(lat, long),
       zoom: 16,
@@ -76,31 +56,57 @@ class MapSampleState extends State<MapSample> {
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      body: GoogleMap(
-        myLocationEnabled: true,
-        initialCameraPosition: _kGooglePlex,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
-        polylines: _polylines,
-        markers: _markers.values.toSet(),
-      ),
-    );
+    return widget._routeResponse == null
+        ? Center(
+            child: CircularProgressIndicator(
+              value: 60,
+            ),
+          )
+        : Container(
+            margin: EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  'eMTe School',
+                  style: Theme.of(context)
+                      .textTheme
+                      .headline
+                      .copyWith(fontFamily: 'Precious'),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Expanded(
+                  child: GoogleMap(
+                    myLocationEnabled: true,
+                    initialCameraPosition: _kGooglePlex,
+                    onMapCreated: (GoogleMapController controller) {
+                      _controller.complete(controller);
+                    },
+                    polylines: _polylines,
+                    markers: _markers.values.toSet(),
+                  ),
+                ),
+              ],
+            ),
+          );
   }
 
   void initRoutes() async {
-    RouteResponse route = await routeBloc.getRouteById(user.routeId);
+//    RouteResponse route =
+//        await widget.routeBloc.getRouteById(widget.user.routeId);
     GeoCordinate origin = GeoCordinate(
-        lat: route.places.first.lattitude, long: route.places.first.longitude);
+        lat: widget._routeResponse.places.first.lattitude, long: widget._routeResponse.places.first.longitude);
 
-    GeoCordinate destination =
-        GeoCordinate(lat: user.place.lattitude, long: user.place.longitude);
+    GeoCordinate destination = GeoCordinate(
+        lat: widget.user.place.lattitude, long: widget.user.place.longitude);
 
-    List<GeoCordinate> wayPoints = getWayPoints(route.places);
+    List<GeoCordinate> wayPoints = getWayPoints(widget._routeResponse.places);
 
     DirectionResponse direction =
-        await routeBloc.getDirection(origin, destination, wayPoints);
+        await widget.routeBloc.getDirection(origin, destination, wayPoints);
 
     var polyLines =
         decodeEncodedPolyline(direction.routes.first.overviewPolyline.points);
@@ -108,7 +114,7 @@ class MapSampleState extends State<MapSample> {
       setState(() {
         latlng.add(poly);
         _polylines.add(Polyline(
-          polylineId: PolylineId(user.id.toString()),
+          polylineId: PolylineId(widget.user.id.toString()),
           visible: true,
           points: latlng,
           width: 3,
@@ -117,17 +123,18 @@ class MapSampleState extends State<MapSample> {
       });
     }
 
-    for (var place in route.places) {
-      if (place.id == user.place.id) {
+    for (var place in widget._routeResponse.places) {
+      if (place.id == widget.user.place.id) {
         final destinationMarker = Marker(
-          markerId: MarkerId(user.place.name),
-          position: LatLng(user.place.lattitude, user.place.longitude),
+          markerId: MarkerId(widget.user.place.name),
+          position:
+              LatLng(widget.user.place.lattitude, widget.user.place.longitude),
           infoWindow: InfoWindow(
-            title: user.place.name,
+            title: widget.user.place.name,
             snippet: 'ETA: ${direction.routes.first.legs.first.duration.text}',
           ),
         );
-        _markers[user.place.id] = destinationMarker;
+        _markers[widget.user.place.id] = destinationMarker;
         return;
       }
 
@@ -138,7 +145,7 @@ class MapSampleState extends State<MapSample> {
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
           infoWindow: InfoWindow(
             title: place.name,
-            snippet: user.name,
+            snippet: widget.user.name,
           ),
         );
       });
@@ -156,7 +163,7 @@ class MapSampleState extends State<MapSample> {
   List<GeoCordinate> getWayPoints(List<PlaceResponse> places) {
     List<GeoCordinate> wayPoints = List<GeoCordinate>();
     for (var place in places) {
-      if (user.place.id == place.id) {
+      if (widget.user.place.id == place.id) {
         return wayPoints;
       }
       wayPoints.add(GeoCordinate(lat: place.lattitude, long: place.longitude));
@@ -194,11 +201,11 @@ class MapSampleState extends State<MapSample> {
   }
 
   void initSignalR() {
-    signalrServices.initialize(_handleBroadCastMessage);
-    signalrServices.start(user.id);
+    widget.signalrServices.initialize(_handleBroadCastMessage);
+    widget.signalrServices.start(widget.user.id);
   }
 
   void _handleBroadCastMessage(List<Object> parameters) {
     print(parameters);
   }
-}
+}*/

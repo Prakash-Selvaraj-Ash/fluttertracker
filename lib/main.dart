@@ -6,4 +6,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   var container = await AppInjector.create(AppModule());
   runApp(container.app);
+//  runApp(MapSam());
 }
+

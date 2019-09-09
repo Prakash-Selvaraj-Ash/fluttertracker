@@ -11,7 +11,7 @@ DirectionResponse _$DirectionResponseFromJson(Map<String, dynamic> json) {
     routes: (json['routes'] as List)
         ?.map((e) => e == null
             ? null
-            : RouteResponse.fromJson(e as Map<String, dynamic>))
+            : MapRouteResponse.fromJson(e as Map<String, dynamic>))
         ?.toList(),
   );
 }

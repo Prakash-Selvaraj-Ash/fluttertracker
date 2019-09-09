@@ -3,26 +3,27 @@ import 'package:bus_tracker_client/src/route/models/place_response.dart';
 import 'package:bus_tracker_client/src/route/models/route_response.dart';
 import 'package:flutter/material.dart';
 
+import '../../../app.dart';
+
 typedef PlaceResponseCallback = void Function(
     RouteResponse route, PlaceResponse place);
 
-class RouteSelector extends StatefulWidget {
+class RoutePlaceSelector extends StatefulWidget {
   final RouteBloc _routeBloc;
-  final PlaceResponseCallback onRouteSelected;
+  final PlaceResponseCallback _onRouteSelected;
+  final bool _placeSelectionNeeded;
 
-  RouteSelector(this._routeBloc, this.onRouteSelected);
+  RoutePlaceSelector(this._routeBloc, this._onRouteSelected,this._placeSelectionNeeded);
 
   @override
   State<StatefulWidget> createState() {
-    return _RouteSelectorState(_routeBloc, onRouteSelected);
+    return _RoutePlaceSelectorState();
   }
 }
 
-class _RouteSelectorState extends State {
-  final RouteBloc _routeBloc;
-  final PlaceResponseCallback _onRouteSelected;
+class _RoutePlaceSelectorState extends State<RoutePlaceSelector> {
 
-  _RouteSelectorState(this._routeBloc, this._onRouteSelected) {
+  _RoutePlaceSelectorState() {
     this._routeResponses = List<RouteResponse>();
     this._placeResponses = List<PlaceResponse>();
   }
@@ -39,7 +40,14 @@ class _RouteSelectorState extends State {
   }
 
   void initializeRoutes() async {
-    var routes = await this._routeBloc.getAllRoutes();
+    var routes;
+
+    if(App.routeResonse == null) {
+      routes = await widget._routeBloc.getAllRoutes();
+    }else{
+     routes = App.routeResonse;
+    }
+
     setState(() {
       _routeResponses = routes;
     });
@@ -55,6 +63,7 @@ class _RouteSelectorState extends State {
             onChanged: (RouteResponse selectedValue) {
               setState(() {
                 _selectedRoute = selectedValue;
+                App.routeId = selectedValue.id;
                 _placeResponse = null;
                 _placeResponses = selectedValue.places;
               });
@@ -78,7 +87,7 @@ class _RouteSelectorState extends State {
                 ? Text(_placeResponse.name)
                 : Text('Please select places'),
             onChanged: (PlaceResponse place) {
-              _onRouteSelected(_selectedRoute, place);
+              widget._onRouteSelected(_selectedRoute, place);
               setState(() {
                 _placeResponse = place;
               });
@@ -98,7 +107,13 @@ class _RouteSelectorState extends State {
   Widget build(BuildContext context) {
     return Container(
       child: Column(
-        children: <Widget>[getRouteDropDown(), getPlaceDropDown()],
+        children: <Widget>[
+          getRouteDropDown(),
+          SizedBox(
+            height: 20,
+          ),
+         widget._placeSelectionNeeded ? getPlaceDropDown() : SizedBox()
+        ],
       ),
     );
   }

@@ -1,4 +1,4 @@
-import 'package:bus_tracker_client/src/route/models/map_models/route_response.dart';
+import 'package:bus_tracker_client/src/route/models/map_models/map_route_response.dart';
 import 'package:json_annotation/json_annotation.dart';
 part 'direction_response.g.dart';
 
@@ -7,7 +7,7 @@ class DirectionResponse{
   DirectionResponse({this.routes});
   
   @JsonKey(name: 'routes')
-  List<RouteResponse> routes;
+  List<MapRouteResponse> routes;
 
   Map<String, dynamic> toJson() => _$DirectionResponseToJson(this);
 

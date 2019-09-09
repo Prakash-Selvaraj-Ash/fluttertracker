@@ -4,35 +4,36 @@ import 'package:bus_tracker_client/src/authentication/models/user_response.dart'
 import 'package:bus_tracker_client/src/route/blocs/route_bloc.dart';
 import 'package:bus_tracker_client/src/route/models/place_response.dart';
 import 'package:bus_tracker_client/src/route/models/route_response.dart';
-import 'package:bus_tracker_client/src/route/ui/route_selector.dart';
+import 'package:bus_tracker_client/src/route/ui/route_place_selector.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:bus_tracker_client/app.dart';
 
 class AuthenticationSignUp extends StatefulWidget {
   final RouteBloc _routeBloc;
   final AuthenticationBloc _authenticationBloc;
   final FirebaseMessaging _firebaseMessaging;
+
   AuthenticationSignUp(
       this._routeBloc, this._authenticationBloc, this._firebaseMessaging);
+
   @override
   State<StatefulWidget> createState() {
-    return _AuthenticationSignUpState(
-        _routeBloc, _authenticationBloc, _firebaseMessaging);
+    return _AuthenticationSignUpState();
   }
 }
 
-class _AuthenticationSignUpState extends State {
-  final RouteBloc _routeBloc;
-  final AuthenticationBloc _authenticationBloc;
-  final FirebaseMessaging _firebaseMessaging;
+class _AuthenticationSignUpState extends State<AuthenticationSignUp> {
   PlaceResponse _placeResponse;
   RouteResponse _routeResponse;
   String fcmToken;
-  TextEditingController nameController = new TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
 
-  _AuthenticationSignUpState(
-      this._routeBloc, this._authenticationBloc, this._firebaseMessaging);
+  final TextEditingController _phoneController = TextEditingController();
+
+  final TextEditingController _emailController = TextEditingController();
+
 
   @override
   void initState() {
@@ -41,11 +42,11 @@ class _AuthenticationSignUpState extends State {
   }
 
   void firebaseCloudMessagingListeners() {
-    _firebaseMessaging.getToken().then((token) {
+    widget._firebaseMessaging.getToken().then((token) {
       fcmToken = token;
     });
 
-    _firebaseMessaging.configure(
+    widget._firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
         print('on message $message');
       },
@@ -61,35 +62,76 @@ class _AuthenticationSignUpState extends State {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('eMTe')),
-        body: Scaffold(
-            body: Container(
+        appBar: AppBar(title: Text('Signup')),
+        body: SingleChildScrollView(
+            child: Container(
+          margin: EdgeInsets.all(10),
+          padding: EdgeInsets.all(10),
           child: Column(
             children: <Widget>[
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                    hintText: "Please enter name", labelText: 'Post Body'),
+              Text(
+                'eMTe School',
+                style: Theme.of(context)
+                    .textTheme
+                    .headline.copyWith(fontFamily: 'Precious')
               ),
-              RouteSelector(_routeBloc, (route, place) {
+              SizedBox(
+                height: 20,
+              ),
+              TextField(
+                style: Theme.of(context).textTheme.subtitle,
+                autofocus: false,
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Name'),
+                keyboardType: TextInputType.text,
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              TextField(
+                style: Theme.of(context).textTheme.subtitle,
+                autofocus: false,
+                controller: _phoneController,
+                decoration: InputDecoration(labelText: 'Mobile number'),
+                keyboardType: TextInputType.number,
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              TextField(
+                style: Theme.of(context).textTheme.subtitle,
+                autofocus: false,
+                controller: _emailController,
+                decoration: InputDecoration(labelText: 'email id'),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              RoutePlaceSelector( widget._routeBloc, (route, place) {
                 setState(() {
                   _routeResponse = route;
                   _placeResponse = place;
                 });
-              }),
+              },true),
+              SizedBox(
+                height: 70,
+              ),
               RaisedButton(
                 onPressed: () async {
-                  UserResponse user = await _authenticationBloc.createUser(
+                  UserResponse user = await  widget._authenticationBloc.createUser(
                       CreateUser(
-                          name: nameController.text,
+                          name: _emailController.text,
                           placeId: _placeResponse.id,
                           routeId: _routeResponse.id,
                           fcmId: fcmToken));
-                  //Navigate to home
-                  Navigator.pushNamedAndRemoveUntil(
-                      context, 'login', (predicate) => false);
+                  App.user = user;
+                  Navigator.pushNamedAndRemoveUntil(context, 'user/track', (p) => false, arguments: user);
                 },
-                child: Text('Register'),
+                child: Text(
+                  'Register',
+                  style: Theme.of(context).textTheme.button,
+                ),
               )
             ],
           ),
