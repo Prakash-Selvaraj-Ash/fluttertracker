@@ -9,9 +9,7 @@ part of 'lat_long.dart';
 LatLong _$LatLongFromJson(Map<String, dynamic> json) {
   return LatLong(
     lattitude: json['Lattitude'] as String,
-    longitude: json['Longitude'] == null
-        ? null
-        : LatLong.fromJson(json['Longitude'] as Map<String, dynamic>),
+    longitude: json['Longitude'] as String,
   );
 }
 

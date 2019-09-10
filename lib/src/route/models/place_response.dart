@@ -4,7 +4,7 @@ part 'place_response.g.dart';
 @JsonSerializable(fieldRename: FieldRename.none)
 class PlaceResponse{
 
-  PlaceResponse({this.id, this.name, this.lattitude, this.longitude});
+  PlaceResponse({this.id, this.name, this.lattitude, this.longitude,this.duration});
 
   @JsonKey(name: 'Id')
   String id;
@@ -17,6 +17,9 @@ class PlaceResponse{
   
   @JsonKey(name: 'Longitude')
   double longitude;
+
+  @JsonKey(name: 'Duration')
+  double duration;
 
   Map<String, dynamic> toJson() => _$PlaceResponseToJson(this);
 

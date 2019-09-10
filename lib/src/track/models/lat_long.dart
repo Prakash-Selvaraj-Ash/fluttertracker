@@ -10,7 +10,7 @@ class LatLong {
   String lattitude;
 
   @JsonKey(name: 'Longitude')
-  LatLong longitude;
+  String longitude;
 
   Map<String, dynamic> toJson() => _$LatLongToJson(this);
 

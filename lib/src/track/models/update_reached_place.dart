@@ -3,8 +3,8 @@ import 'package:bus_tracker_client/src/track/models/lat_long.dart';
 part 'update_reached_place.g.dart';
 
 @JsonSerializable(fieldRename: FieldRename.none)
-class UpdateReacedPlace{
-  UpdateReacedPlace({this.busId,this.lastDestinationId,this.currentLocation});
+class UpdateReachedPlace{
+  UpdateReachedPlace({this.busId,this.lastDestinationId,this.currentLocation});
 
   @JsonKey(name: 'BusId')
   String busId;
@@ -15,12 +15,12 @@ class UpdateReacedPlace{
   @JsonKey(name: 'LastDestinationId')
   String lastDestinationId;
 
-  Map<String, dynamic> toJson() => _$UpdateReacedPlaceToJson(this);
+  Map<String, dynamic> toJson() => _$UpdateReachedPlaceToJson(this);
 
-  factory UpdateReacedPlace.fromJson(Map<String, dynamic> json) =>
-      _$UpdateReacedPlaceFromJson(json);
+  factory UpdateReachedPlace.fromJson(Map<String, dynamic> json) =>
+      _$UpdateReachedPlaceFromJson(json);
 
-  UpdateReacedPlace toObject(Map<String, dynamic> responseJson) {
-    return UpdateReacedPlace.fromJson(responseJson);
+  UpdateReachedPlace toObject(Map<String, dynamic> responseJson) {
+    return UpdateReachedPlace.fromJson(responseJson);
   }
 }

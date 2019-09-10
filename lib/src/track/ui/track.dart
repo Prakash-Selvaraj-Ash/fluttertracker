@@ -1,4 +1,8 @@
 import 'package:bus_tracker_client/src/route/models/route_response.dart';
+import 'package:bus_tracker_client/src/track/blocs/track_bloc.dart';
+import 'package:bus_tracker_client/src/track/models/lat_long.dart';
+import 'package:bus_tracker_client/src/track/models/start_bus_request.dart';
+import 'package:bus_tracker_client/src/track/models/update_reached_place.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_tracker_client/src/route/blocs/route_bloc.dart';
 import 'package:bus_tracker_client/src/signalr/signal_services.dart';
@@ -11,13 +15,14 @@ import 'dart:math' show cos, sqrt, asin;
 class BusTrack extends StatefulWidget {
   final String _routeId;
   final RouteBloc _routeBloc;
+  final TrackBloc _trackBloc;
   final SignalrServices _signalrServices;
   RouteResponse _routeResponse;
   LatLng _currentLatLng;
   final bool _isDriver;
 
-  BusTrack(
-      this._routeId, this._routeBloc, this._signalrServices, this._isDriver);
+  BusTrack(this._routeId, this._routeBloc, this._trackBloc,
+      this._signalrServices, this._isDriver);
 
   LatLng get _initialLatLng {
     return LatLng(_routeResponse.places[0].lattitude + 0.002,
@@ -30,12 +35,15 @@ class BusTrack extends StatefulWidget {
         _routeResponse.places[_routeResponse.places.length - 1].longitude);
   }
 
-  double _calculateDistance(LatLng origin, LatLng destination){
+  double _calculateDistance(LatLng origin, LatLng destination) {
     var p = 0.017453292519943295;
     var c = cos;
-    var a = 0.5 - c((destination.latitude - origin.latitude) * p)/2 +
-        c(origin.latitude * p) * c(destination.latitude * p) *
-            (1 - c((destination.longitude - origin.longitude) * p))/2;
+    var a = 0.5 -
+        c((destination.latitude - origin.latitude) * p) / 2 +
+        c(origin.latitude * p) *
+            c(destination.latitude * p) *
+            (1 - c((destination.longitude - origin.longitude) * p)) /
+            2;
     return 12742 * asin(sqrt(a));
   }
 
@@ -55,14 +63,38 @@ class _BusTrackState extends State<BusTrack> {
     }
   }
 
-  void initLocationUpdates() async {
+  void initLocationUpdates() {
     if (widget._currentLatLng == null) {
       widget._currentLatLng = widget._initialLatLng;
     }
-    /*print(widget._calculateDistance(
-        widget._currentLatLng,
-    LatLng(widget._routeResponse.places[0].lattitude+ 0.002,
-        widget._routeResponse.places[0].longitude+ 0.0019)));*/
+    updateBusStarted();
+  }
+
+  void updateBusStarted() async {
+    StartBusRequest busRequest = StartBusRequest(
+      busId: App.BUS_IDS[widget._routeId],
+      routeId: widget._routeId,
+      lastDestinationId: "",
+      currentLattitude: widget._currentLatLng.latitude.toString(),
+      currentLongitude: widget._currentLatLng.longitude.toString(),
+      startLattitude: widget._currentLatLng.latitude.toString(),
+      startLongitude: widget._currentLatLng.longitude.toString(),
+    );
+    dynamic response = await widget._trackBloc.startBus(busRequest);
+    print(response);
+  }
+
+  void updateCurrentLocation(String destinationId) async {
+    UpdateReachedPlace updateReachedPlace = UpdateReachedPlace(
+        busId: App.BUS_IDS[widget._routeId],
+        lastDestinationId: destinationId,
+        currentLocation: LatLong(
+            lattitude: widget._currentLatLng.latitude.toString(),
+            longitude: widget._currentLatLng.longitude.toString(),
+        )
+    );
+    dynamic response = await widget._trackBloc.updatePlace(updateReachedPlace, destinationId != null);
+    print(response);
   }
 
   void initSignalRListener() {

@@ -1,4 +1,5 @@
 import 'package:bus_tracker_client/src/track/blocs/track_provider.dart';
+import 'package:bus_tracker_client/src/track/models/start_bus_request.dart';
 import 'package:bus_tracker_client/src/track/models/update_reached_place.dart';
 import 'package:inject/inject.dart';
 
@@ -9,7 +10,10 @@ class TrackRepository {
   TrackRepository(this._trackProvider);
 
   Future<dynamic> updateReacedPlace(
-      UpdateReacedPlace updateReacedPlace) async =>
-      await _trackProvider.updateReacedPlace(updateReacedPlace);
+      UpdateReachedPlace updateReacedPlace, bool isDestinationUpdate) async =>
+      await _trackProvider.updateReacedPlace(updateReacedPlace,isDestinationUpdate);
+
+  Future<dynamic> startBus(StartBusRequest busRequest)  async =>
+      await _trackProvider.startBus(busRequest);
 
 }

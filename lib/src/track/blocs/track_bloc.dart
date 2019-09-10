@@ -11,11 +11,11 @@ class TrackBloc extends BlocBase {
   TrackBloc(this._trackRepository);
 
   startBus(StartBusRequest busRequest) async{
-
+    dynamic response = await _trackRepository.startBus(busRequest);
   }
 
-  updatePlace(UpdateReacedPlace updateReacedPlace) async{
-    dynamic response = await _trackRepository.updateReacedPlace(updateReacedPlace);
+  updatePlace(UpdateReachedPlace updateReacedPlace, bool isDestinationUpdate) async{
+    dynamic response = await _trackRepository.updateReacedPlace(updateReacedPlace,isDestinationUpdate);
   }
 
   @override

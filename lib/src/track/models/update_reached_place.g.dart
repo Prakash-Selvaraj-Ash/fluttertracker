@@ -6,8 +6,8 @@ part of 'update_reached_place.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-UpdateReacedPlace _$UpdateReacedPlaceFromJson(Map<String, dynamic> json) {
-  return UpdateReacedPlace(
+UpdateReachedPlace _$UpdateReachedPlaceFromJson(Map<String, dynamic> json) {
+  return UpdateReachedPlace(
     busId: json['BusId'] as String,
     lastDestinationId: json['LastDestinationId'] as String,
     currentLocation: json['CurrentLocation'] == null
@@ -16,7 +16,7 @@ UpdateReacedPlace _$UpdateReacedPlaceFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$UpdateReacedPlaceToJson(UpdateReacedPlace instance) =>
+Map<String, dynamic> _$UpdateReachedPlaceToJson(UpdateReachedPlace instance) =>
     <String, dynamic>{
       'BusId': instance.busId,
       'CurrentLocation': instance.currentLocation,
