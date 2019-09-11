@@ -4,17 +4,13 @@ part 'start_bus_request.g.dart';
 @JsonSerializable(fieldRename: FieldRename.none)
 class StartBusRequest {
   StartBusRequest({this.busId, this.routeId, this.currentLattitude,
-      this.currentLongitude, this.startLattitude, this.startLongitude,
-      this.lastDestinationId});
+      this.currentLongitude, this.startLattitude, this.startLongitude});
 
   @JsonKey(name: 'BusId')
   String busId;
 
   @JsonKey(name: 'RouteId')
   String routeId;
-
-  @JsonKey(name: 'LastDestinationId')
-  String lastDestinationId;
 
   @JsonKey(name: 'CurrentLattitude')
   String currentLattitude;

@@ -12,7 +12,6 @@ PlaceResponse _$PlaceResponseFromJson(Map<String, dynamic> json) {
     name: json['Name'] as String,
     lattitude: (json['Lattitude'] as num)?.toDouble(),
     longitude: (json['Longitude'] as num)?.toDouble(),
-    duration: (json['Duration'] as num)?.toDouble(),
   );
 }
 
@@ -22,5 +21,4 @@ Map<String, dynamic> _$PlaceResponseToJson(PlaceResponse instance) =>
       'Name': instance.name,
       'Lattitude': instance.lattitude,
       'Longitude': instance.longitude,
-      'Duration': instance.duration,
     };

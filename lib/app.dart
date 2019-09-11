@@ -78,7 +78,7 @@ class App extends StatelessWidget {
                 builder: (_) => AuthenticationLogin(authenticationBloc));
           case "user/track":
             return MaterialPageRoute(
-                builder: (_) => BusTrack(user.routeId, routeBloc, trackBloc,
+                builder: (_) => BusTrack(routeId, routeBloc, trackBloc,
                     signalrServices, false));
           default:
             return MaterialPageRoute(
@@ -95,7 +95,7 @@ class App extends StatelessWidget {
             routeBloc, authenticationBloc, firebaseMessaging),
         '/user/login': (context) => AuthenticationLogin(authenticationBloc),
         '/user/track': (context) =>
-            BusTrack(user.routeId, routeBloc, trackBloc, signalrServices, false)
+            BusTrack(routeId, routeBloc, trackBloc, signalrServices, false)
       },
     );
   }

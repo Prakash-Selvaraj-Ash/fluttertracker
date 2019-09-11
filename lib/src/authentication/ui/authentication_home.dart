@@ -9,6 +9,7 @@ class AuthenticationHome extends StatefulWidget {
   final RouteBloc _routeBloc;
 
   AuthenticationHome(this._routeBloc);
+   var _routeResponses;
 
   @override
   _AuthenticationHomeState createState() => _AuthenticationHomeState();
@@ -21,10 +22,31 @@ class _AuthenticationHomeState extends State<AuthenticationHome> {
     initializeRoutes();
   }
 
-  void initializeRoutes() async {
+  /*void initializeRoutes() async {
     var routes = await widget._routeBloc.getAllRoutes();
+    print(routes);
     setState(() {
+      if(routes != null) {
+        App.routeResonse = routes;
+      }
+    });
+  }*/
+
+  void initializeRoutes() async {
+    var routes;
+
+    if(App.routeResonse == null) {
+      routes = await widget._routeBloc.getAllRoutes();
       App.routeResonse = routes;
+    }else{
+      routes = App.routeResonse;
+    }
+
+    setState(() {
+      widget._routeResponses = routes;
+      if(widget._routeResponses != null){
+        App.routeResonse = routes;
+      }
     });
   }
 
@@ -40,7 +62,7 @@ class _AuthenticationHomeState extends State<AuthenticationHome> {
       appBar: AppBar(
         title: Text('Select Your Role'),
       ),
-      body: App.routeResonse == null
+      body: widget._routeResponses == null
           ? Center(
               child: CircularProgressIndicator(
                 value: 60,

@@ -3,8 +3,20 @@ import 'package:json_annotation/json_annotation.dart';
 part 'place_response_eta.g.dart';
 
 @JsonSerializable(fieldRename: FieldRename.none)
-class PlaceWithEtaResponse extends PlaceResponse {
-  PlaceWithEtaResponse({id, name, lattitude, longitude, this.duration});
+class PlaceWithEtaResponse{
+  PlaceWithEtaResponse({this.id, this.name, this.lattitude, this.longitude, this.duration});
+
+  @JsonKey(name: 'Id')
+  String id;
+
+  @JsonKey(name: 'Name')
+  String name;
+
+  @JsonKey(name: 'Lattitude')
+  double lattitude;
+
+  @JsonKey(name: 'Longitude')
+  double longitude;
 
   @JsonKey(name: "Duration")
   double duration;

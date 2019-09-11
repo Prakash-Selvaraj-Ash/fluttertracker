@@ -2,6 +2,10 @@ import 'dart:convert';
 
 import 'package:bus_tracker_client/src/authentication/blocs/authentication_bloc.dart';
 import 'package:bus_tracker_client/src/authentication/models/user_response.dart';
+import 'package:bus_tracker_client/src/route/blocs/route_bloc.dart';
+import 'package:bus_tracker_client/src/route/models/place_response.dart';
+import 'package:bus_tracker_client/src/route/models/route_response.dart';
+import 'package:bus_tracker_client/src/route/ui/route_place_selector.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_tracker_client/app.dart';
@@ -38,7 +42,6 @@ class AuthenticationLogin extends StatefulWidget {
           ),
         )));
   }*/
-
   final AuthenticationBloc _authenticationBloc;
   AuthenticationLogin(this._authenticationBloc);
 
@@ -92,7 +95,9 @@ class _AuthenticationLoginState extends State<AuthenticationLogin> {
                   onPressed: () async {
                     UserResponse user = await widget._authenticationBloc.getUser(_usernameController.text);
                     print(json.encode(user.toJson()));
+                    App.routeId = user.routeId;
                     App.user = user;
+                    print(App.routeResonse);
                     Navigator.pushNamedAndRemoveUntil(context, 'user/track', (p) => false, arguments: user);
                     // Navigate to home
                   },

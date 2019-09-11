@@ -1,7 +1,11 @@
+import 'package:bus_tracker_client/src/route/models/place_response.dart';
+import 'package:bus_tracker_client/src/route/models/place_response_eta.dart';
 import 'package:bus_tracker_client/src/route/models/route_response.dart';
 import 'package:bus_tracker_client/src/track/blocs/track_bloc.dart';
+import 'package:bus_tracker_client/src/track/models/bus_track_response_dto.dart';
 import 'package:bus_tracker_client/src/track/models/lat_long.dart';
 import 'package:bus_tracker_client/src/track/models/start_bus_request.dart';
+import 'package:bus_tracker_client/src/track/models/update_current_lat_lng.dart';
 import 'package:bus_tracker_client/src/track/models/update_reached_place.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_tracker_client/src/route/blocs/route_bloc.dart';
@@ -20,6 +24,9 @@ class BusTrack extends StatefulWidget {
   RouteResponse _routeResponse;
   LatLng _currentLatLng;
   final bool _isDriver;
+  BusTrackResponseDto _trackData;
+  Map<String, String> _etaForPlaces = Map();
+  bool _showNotStarted = false;
 
   BusTrack(this._routeId, this._routeBloc, this._trackBloc,
       this._signalrServices, this._isDriver);
@@ -56,44 +63,128 @@ class _BusTrackState extends State<BusTrack> {
   void initState() {
     super.initState();
     initializeRoutes();
-    if (widget._isDriver) {
-      initLocationUpdates();
+  }
+
+  void initializeRoutes() async {
+    RouteResponse places;
+    print(listRes);
+    if (listRes == null || !widget._isDriver) {
+      places = await widget._routeBloc.getRouteById(widget._routeId);
     } else {
-      initSignalRListener();
+      places = listRes;
     }
+    setState(() {
+      widget._routeResponse = places;
+      initializeTrackData();
+    });
+  }
+
+  void initializeTrackData() async {
+    var res = await widget._trackBloc
+        .getBusRouteByBusId(App.BUS_IDS[widget._routeId]);
+    setState(() {
+      widget._trackData = res;
+
+//      widget._trackData.lastDestination = widget._routeResponse.places[3];
+//      widget._trackData.currentLattitude = widget._routeResponse.places[2].lattitude;
+//      widget._trackData.currentLongitude = widget._routeResponse.places[2].longitude;
+
+      if (widget._isDriver) {
+        initLocationUpdates();
+      } else {
+        if (widget._trackData != null) {
+          parseTrackData();
+        } else {
+          widget._showNotStarted = true;
+        }
+//        initSignalRListener();
+      }
+    });
   }
 
   void initLocationUpdates() {
-    if (widget._currentLatLng == null) {
-      widget._currentLatLng = widget._initialLatLng;
+    if (widget._trackData == null) {
+      if (widget._currentLatLng == null) {
+        setState(() {
+          widget._currentLatLng = widget._initialLatLng;
+        });
+      }
+      updateBusStarted();
+    } else {
+      parseTrackData();
+      startLocationUpdateTimer();
     }
-    updateBusStarted();
+  }
+
+  void startLocationUpdateTimer() {
+
+  }
+
+  void parseTrackData() {
+    setState(() {
+      widget._etaForPlaces = setEtaForPlaces();
+      widget._currentLatLng = LatLng(widget._trackData.currentLattitude,
+          widget._trackData.currentLongitude);
+    });
+  }
+
+  Map<String, String> setEtaForPlaces() {
+    Map<String, String> etas = Map();
+    if (widget._trackData.currentRouteStatus != null &&
+        widget._trackData.currentRouteStatus.length > 0) {
+      for (PlaceWithEtaResponse placeResponse
+          in widget._trackData.currentRouteStatus) {
+        print(placeResponse.name);
+        etas.putIfAbsent(placeResponse.id,
+            () => (placeResponse.duration.toStringAsFixed(1) + " min"));
+      }
+    }
+    print(etas);
+    return etas;
   }
 
   void updateBusStarted() async {
     StartBusRequest busRequest = StartBusRequest(
       busId: App.BUS_IDS[widget._routeId],
       routeId: widget._routeId,
-      lastDestinationId: "",
       currentLattitude: widget._currentLatLng.latitude.toString(),
       currentLongitude: widget._currentLatLng.longitude.toString(),
       startLattitude: widget._currentLatLng.latitude.toString(),
       startLongitude: widget._currentLatLng.longitude.toString(),
     );
-    dynamic response = await widget._trackBloc.startBus(busRequest);
+    var response = await widget._trackBloc.startBus(busRequest);
+    print(response);
+    setState(() {
+      widget._trackData = response;
+      if (widget._trackData != null) {
+        parseTrackData();
+        startLocationUpdateTimer();
+      }
+    });
+  }
+
+  void updateCurrentLocation() async {
+    UpdateCurrentLatLng updateCurrentLatLng = UpdateCurrentLatLng(
+        busId: App.BUS_IDS[widget._routeId],
+        currentLocation: LatLong(
+          lattitude: widget._currentLatLng.latitude.toString(),
+          longitude: widget._currentLatLng.longitude.toString(),
+        ));
+    dynamic response =
+        await widget._trackBloc.updateCurrentLatLng(updateCurrentLatLng);
     print(response);
   }
 
-  void updateCurrentLocation(String destinationId) async {
+  void updateReachedPlace(String destinationId) async {
     UpdateReachedPlace updateReachedPlace = UpdateReachedPlace(
         busId: App.BUS_IDS[widget._routeId],
         lastDestinationId: destinationId,
         currentLocation: LatLong(
-            lattitude: widget._currentLatLng.latitude.toString(),
-            longitude: widget._currentLatLng.longitude.toString(),
-        )
-    );
-    dynamic response = await widget._trackBloc.updatePlace(updateReachedPlace, destinationId != null);
+          lattitude: widget._currentLatLng.latitude.toString(),
+          longitude: widget._currentLatLng.longitude.toString(),
+        ));
+    dynamic response =
+        await widget._trackBloc.updateReachedPlace(updateReachedPlace);
     print(response);
   }
 
@@ -118,18 +209,6 @@ class _BusTrackState extends State<BusTrack> {
     return response;
   }
 
-  void initializeRoutes() async {
-    RouteResponse places;
-    if (listRes == null) {
-      places = await widget._routeBloc.getRouteById(widget._routeId);
-    } else {
-      places = listRes;
-    }
-    setState(() {
-      widget._routeResponse = places;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -147,8 +226,18 @@ class _BusTrackState extends State<BusTrack> {
           body: TabBarView(
             physics: NeverScrollableScrollPhysics(),
             children: [
-              LineTrack(widget._routeResponse, widget._currentLatLng),
-              MapTrack(widget._routeResponse, widget._currentLatLng),
+              LineTrack(
+                  widget._routeResponse,
+                  widget._currentLatLng,
+                  widget._trackData,
+                  widget._etaForPlaces,
+                  widget._showNotStarted),
+              MapTrack(
+                  widget._routeResponse,
+                  widget._currentLatLng,
+                  widget._trackData,
+                  widget._etaForPlaces,
+                  widget._showNotStarted),
             ],
           ),
         ));

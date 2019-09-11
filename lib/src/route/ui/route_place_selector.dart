@@ -44,6 +44,7 @@ class _RoutePlaceSelectorState extends State<RoutePlaceSelector> {
 
     if(App.routeResonse == null) {
       routes = await widget._routeBloc.getAllRoutes();
+      App.routeResonse = routes;
     }else{
      routes = App.routeResonse;
     }

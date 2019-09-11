@@ -10,12 +10,12 @@ class RouteBloc extends BlocBase {
   @provide
   RouteBloc(this._routeRepository);
 
-  getAllRoutes() async {
+  Future<List<RouteResponse>> getAllRoutes() async {
     List<RouteResponse> routes = await _routeRepository.getAllRoutes();
     return routes;
   }
 
-  getRouteById(String routeId) async {
+  Future<RouteResponse> getRouteById(String routeId) async {
     RouteResponse route = await _routeRepository.getRouteById(routeId);
     return route;
   }

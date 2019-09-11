@@ -8,10 +8,10 @@ part of 'place_response_eta.dart';
 
 PlaceWithEtaResponse _$PlaceWithEtaResponseFromJson(Map<String, dynamic> json) {
   return PlaceWithEtaResponse(
-    id: json['Id'],
-    name: json['Name'],
-    lattitude: json['Lattitude'],
-    longitude: json['Longitude'],
+    id: json['Id'] as String,
+    name: json['Name'] as String,
+    lattitude: (json['Lattitude'] as num)?.toDouble(),
+    longitude: (json['Longitude'] as num)?.toDouble(),
     duration: (json['Duration'] as num)?.toDouble(),
   );
 }

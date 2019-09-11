@@ -14,7 +14,6 @@ StartBusRequest _$StartBusRequestFromJson(Map<String, dynamic> json) {
     currentLongitude: json['CurrentLongitude'] as String,
     startLattitude: json['StartLattitude'] as String,
     startLongitude: json['StartLongitude'] as String,
-    lastDestinationId: json['LastDestinationId'] as String,
   );
 }
 
@@ -22,7 +21,6 @@ Map<String, dynamic> _$StartBusRequestToJson(StartBusRequest instance) =>
     <String, dynamic>{
       'BusId': instance.busId,
       'RouteId': instance.routeId,
-      'LastDestinationId': instance.lastDestinationId,
       'CurrentLattitude': instance.currentLattitude,
       'CurrentLongitude': instance.currentLongitude,
       'StartLattitude': instance.startLattitude,

@@ -52,7 +52,7 @@ class BusTrackResponseDto{
   DirectionResponse get directionResponse
   {
     return DirectionResponse.fromJson(
-            json.decode(gDirection) as Map<String, dynamic>); 
+            json.decode(gDirection) as Map<String, dynamic>);
   }
 
   @JsonKey(name: "CurrentRouteStatus")
