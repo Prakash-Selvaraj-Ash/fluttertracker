@@ -1,6 +1,6 @@
 import 'package:bus_tracker_client/src/route/models/route_response.dart';
-import 'package:bus_tracker_client/src/track/models/start_bus_request.dart';
-import 'package:bus_tracker_client/src/track/models/update_reached_place.dart';
+import 'package:bus_tracker_client/src/track/models/bus_track_response_dto.dart';
+import 'package:bus_tracker_client/src/track/models/start_bus_request.dart';import 'package:bus_tracker_client/src/track/models/update_reached_place.dart';
 import 'package:bus_tracker_client/src/track/webclient/track_client.dart';
 import 'package:inject/inject.dart';
 
@@ -19,4 +19,7 @@ class TrackProvider {
 
   Future<dynamic> startBus(StartBusRequest busRequest) async =>
       await _trackClient.startBus(busRequest);
+
+  Future<BusTrackResponseDto> getBusRouteByUserId(String userId) async =>
+    await _trackClient.getBusRouteByUserId(userId);
 }
