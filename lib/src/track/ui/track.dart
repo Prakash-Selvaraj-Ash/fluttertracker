@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:bus_tracker_client/src/route/models/place_response.dart';
 import 'package:bus_tracker_client/src/route/models/place_response_eta.dart';
 import 'package:bus_tracker_client/src/route/models/route_response.dart';
 import 'package:bus_tracker_client/src/track/blocs/track_bloc.dart';
@@ -29,6 +29,10 @@ class BusTrack extends StatefulWidget {
   BusTrackResponseDto _trackData;
   Map<String, String> _etaForPlaces = Map();
   bool _showNotStarted = false;
+  int _lastDestinationIndex = -1;
+  int _lastUpdateIndex = -1;
+  final Set<Polyline> _polylines = {};
+  List<LatLng> latlng = [];
 
   BusTrack(this._routeId, this._routeBloc, this._trackBloc,
       this._signalrServices, this._isDriver);
@@ -81,6 +85,14 @@ class _BusTrackState extends State<BusTrack> {
     });
   }
 
+  void setLastDestinationIndex(PlaceResponse lastPlace) {
+    for (int i = 0; i < widget._routeResponse.places.length; i++) {
+      if (lastPlace.id == widget._routeResponse.places[i].id) {
+        widget._lastDestinationIndex = i;
+      }
+    }
+  }
+
   void initializeTrackData() async {
     var res = widget._isDriver ?
       await widget._trackBloc
@@ -90,6 +102,13 @@ class _BusTrackState extends State<BusTrack> {
 
     setState(() {
       widget._trackData = res;
+        if (widget._trackData != null && widget._trackData.busId != null && widget._trackData.lastDestination != null) {
+          setLastDestinationIndex(widget._trackData.lastDestination);
+        }
+        if (widget._trackData != null && widget._trackData.busId != null && widget._trackData.gDirection != null && widget._trackData.directionResponse != null) {
+          initPolyLines();
+        }
+
 
 //      widget._trackData.lastDestination = widget._routeResponse.places[3];
 //      widget._trackData.currentLattitude = widget._routeResponse.places[2].lattitude;
@@ -98,7 +117,7 @@ class _BusTrackState extends State<BusTrack> {
       if (widget._isDriver) {
         initLocationUpdates();
       } else {
-        if (widget._trackData != null) {
+        if (widget._trackData != null && widget._trackData.busId != null) {
           parseTrackData();
         } else {
           widget._showNotStarted = true;
@@ -162,11 +181,48 @@ class _BusTrackState extends State<BusTrack> {
     print(response);
     setState(() {
       widget._trackData = response;
-      if (widget._trackData != null) {
+      if (widget._trackData != null && widget._trackData.busId != null) {
         parseTrackData();
         startLocationUpdateTimer();
       }
     });
+  }
+
+  void updateToNextPoint() {
+    widget._lastUpdateIndex += 5;
+    if (widget.latlng.length > widget._lastUpdateIndex) {
+      setState(() {
+        widget._currentLatLng = widget.latlng[widget._lastUpdateIndex];
+        print("lat"+widget._currentLatLng.latitude.toString());
+        print("lon"+widget._currentLatLng.longitude.toString());
+      });
+      updateCurrentLocation();
+      if (widget._lastDestinationIndex <
+          (widget._routeResponse.places.length - 1)) {
+        if (widget._calculateDistance(
+                widget._currentLatLng,
+                LatLng(
+                    widget._routeResponse
+                        .places[widget._lastDestinationIndex + 1].lattitude,
+                    widget._routeResponse
+                        .places[widget._lastDestinationIndex + 1].longitude)) <
+            0.15) {
+          updateToNextPlace();
+        }
+      }
+    } else if (widget._lastDestinationIndex <
+        (widget._routeResponse.places.length - 1)) {
+      /*setState(() {
+        widget._currentLatLng = LatLng(
+            widget._routeResponse.places[widget._lastDestinationIndex + 1]
+                .lattitude,
+            widget._routeResponse.places[widget._lastDestinationIndex + 1]
+                .longitude);
+      });
+      updateReachedPlace(
+          widget._routeResponse.places[widget._lastDestinationIndex + 1].id);*/
+      updateToNextPlace();
+    }
   }
 
   void updateCurrentLocation() async {
@@ -179,6 +235,22 @@ class _BusTrackState extends State<BusTrack> {
     dynamic response =
         await widget._trackBloc.updateCurrentLatLng(updateCurrentLatLng);
     print(response);
+    initializeTrackData();
+  }
+
+  void updateToNextPlace() {
+    if (widget._routeResponse.places.length >
+        (widget._lastDestinationIndex + 1)) {
+      setState(() {
+        widget._currentLatLng = LatLng(
+            widget._routeResponse.places[widget._lastDestinationIndex + 1]
+                .lattitude,
+            widget._routeResponse.places[widget._lastDestinationIndex + 1]
+                .longitude);
+      });
+      updateReachedPlace(
+          widget._routeResponse.places[widget._lastDestinationIndex + 1].id);
+    }
   }
 
   void updateReachedPlace(String destinationId) async {
@@ -203,6 +275,11 @@ class _BusTrackState extends State<BusTrack> {
     var map = parameters.first as String;
     LiveTrackResponseDto response = LiveTrackResponseDto
       .fromJson(json.decode(map) as Map<String, dynamic>);
+    widget._trackData.lastDestination = response.lastDestination;
+    widget._trackData.currentRouteStatus = response.places;
+    widget._trackData.currentLattitude = response.currentLocationCoordinate.lattitude;
+    widget._trackData.currentLongitude = response.currentLocationCoordinate.longitude;
+    parseTrackData();
     print("live response: ");
     print(response);
   }
@@ -237,19 +314,73 @@ class _BusTrackState extends State<BusTrack> {
             physics: NeverScrollableScrollPhysics(),
             children: [
               LineTrack(
-                  widget._routeResponse,
-                  widget._currentLatLng,
-                  widget._trackData,
-                  widget._etaForPlaces,
-                  widget._showNotStarted),
+                widget._routeResponse,
+                widget._currentLatLng,
+                widget._trackData,
+                widget._etaForPlaces,
+                widget._showNotStarted,
+                widget._isDriver ? updateCurrentLocation : null,
+                widget._isDriver ? updateToNextPlace : null,
+              ),
               MapTrack(
-                  widget._routeResponse,
-                  widget._currentLatLng,
-                  widget._trackData,
-                  widget._etaForPlaces,
-                  widget._showNotStarted),
+                widget._routeResponse,
+                widget._currentLatLng,
+                widget._trackData,
+                widget._etaForPlaces,
+                widget._showNotStarted,
+                widget._isDriver ? updateCurrentLocation : null,
+                widget._isDriver ? updateToNextPlace : null,
+                widget._polylines,
+              ),
             ],
           ),
         ));
+  }
+
+  void initPolyLines() {
+    widget._polylines.clear();
+    var polyLines = decodeEncodedPolyline(widget
+        ._trackData.directionResponse.routes.first.overviewPolyline.points);
+    for (var poly in polyLines) {
+      print(poly);
+      widget.latlng.add(poly);
+      widget._polylines.add(Polyline(
+        polylineId: PolylineId(widget._trackData.busId),
+        visible: true,
+        points: widget.latlng,
+        width: 3,
+        color: Colors.black,
+      ));
+    }
+  }
+
+  List<LatLng> decodeEncodedPolyline(String encoded) {
+    List<LatLng> poly = [];
+    int index = 0, len = encoded.length;
+    int lat = 0, lng = 0;
+
+    while (index < len) {
+      int b, shift = 0, result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      lat += dlat;
+
+      shift = 0;
+      result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      lng += dlng;
+      LatLng p = new LatLng((lat / 1E5).toDouble(), (lng / 1E5).toDouble());
+      poly.add(p);
+    }
+    return poly;
   }
 }

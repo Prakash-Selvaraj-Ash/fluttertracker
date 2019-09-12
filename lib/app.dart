@@ -48,7 +48,7 @@ class App extends StatelessWidget {
                 button: TextStyle(fontSize: 16, color: Colors.white),
                 headline: TextStyle(
                   color: Colors.blue,
-                  fontSize: 40,
+                  fontSize: 35,
                 ),
               ),
           buttonTheme: ThemeData.light().buttonTheme.copyWith(

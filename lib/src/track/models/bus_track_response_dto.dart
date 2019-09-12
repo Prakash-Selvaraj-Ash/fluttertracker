@@ -51,7 +51,7 @@ class BusTrackResponseDto{
 
   DirectionResponse get directionResponse
   {
-    return DirectionResponse.fromJson(
+    return gDirection == null ? null : DirectionResponse.fromJson(
             json.decode(gDirection) as Map<String, dynamic>);
   }
 

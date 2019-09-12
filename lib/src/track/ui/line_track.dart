@@ -16,25 +16,41 @@ class LineTrack extends StatelessWidget {
   final Map<String, String> _etaForPlaces;
   final ScrollController _scrollController = ScrollController();
   final bool _showNotStarted;
+  final Function _updateToNextPoint;
+  final Function _updateToNextPlace;
 
   LineTrack(this._routeResponse, this._currentLatLng, this._trackData,
-      this._etaForPlaces, this._showNotStarted);
+      this._etaForPlaces, this._showNotStarted,this._updateToNextPoint,this._updateToNextPlace);
+
+  LatLng get _initialLatLng {
+    return LatLng(_routeResponse.places[0].lattitude + 0.002,
+        _routeResponse.places[0].longitude + 0.002);
+  }
 
   void calculateBlinkingDotPostion() {
-    print(_currentLatLng.latitude.toString() +
+    /*print(_currentLatLng.latitude.toString() +
         " - " +
-        _currentLatLng.longitude.toString());
+        _currentLatLng.longitude.toString());*/
+
+    if (_currentLatLng.latitude.toStringAsFixed(4) !=
+        _initialLatLng.latitude.toStringAsFixed(4) ||
+        _currentLatLng.longitude.toStringAsFixed(4) !=
+            _initialLatLng.longitude.toStringAsFixed(4)) {
+      _blinkingDotPosition = 58;
+      print(_blinkingDotPosition);
+    }
+
     for (int i = 0; i < _routeResponse.places.length; i++) {
-      print(_routeResponse.places[i].lattitude.toString() +
+     /* print(_routeResponse.places[i].lattitude.toString() +
           " - " +
-          _routeResponse.places[i].longitude.toString());
+          _routeResponse.places[i].longitude.toString());*/
       if (_currentLatLng.latitude.toStringAsFixed(4) ==
               _routeResponse.places[i].lattitude.toStringAsFixed(4) &&
           _currentLatLng.longitude.toStringAsFixed(4) ==
               _routeResponse.places[i].longitude.toStringAsFixed(4)) {
         _blinkingDotPosition = (((i + 1) * 100) + 15).toDouble();
       }
-      if (_trackData.lastDestination != null &&
+      if (_trackData != null && _trackData.lastDestination != null &&
           _trackData.lastDestination.id == _routeResponse.places[i].id) {
         if (i == _routeResponse.places.length - 1) {
           _blinkingDotPosition = (((i + 1) * 100) + 15).toDouble();
@@ -77,12 +93,59 @@ class LineTrack extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    Text(
-                      'eMTe School',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headline.copyWith(fontFamily: 'Precious'),
-                    ),
+                    _updateToNextPlace == null
+                        ? Text(
+                            'eMTe School',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headline
+                                .copyWith(fontFamily: 'Precious'),
+                          )
+                        : Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    'eMTe School',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headline
+                                        .copyWith(fontFamily: 'Precious'),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 10,),
+                              Container(
+                                width: 60,
+                                child: RaisedButton(
+                                  onPressed: _updateToNextPoint,
+                                  child: Text(
+                                    '>',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .button
+                                        .copyWith(fontSize: 18),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 10,),
+                              Container(
+                                width: 60,
+                                child: RaisedButton(
+                                  onPressed: _updateToNextPlace,
+                                  color: Theme.of(context).secondaryHeaderColor,
+                                  child: Text(
+                                    '>>',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .button
+                                        .copyWith(
+                                            color: Colors.black, fontSize: 18),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                     SizedBox(
                       height: 40,
                     ),

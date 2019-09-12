@@ -14,12 +14,13 @@ class MapTrack extends StatefulWidget {
   final Map<String, Marker> _markersList = {};
   final BusTrackResponseDto _trackData;
   final Map<String, String> _etaForPlaces;
-  final Set<Polyline> _polylines = {};
-  List<LatLng> latlng = [];
+  final Set<Polyline> _polylines;
   final bool _showNotStarted;
+  final Function _updateToNextPoint;
+  final Function _updateToNextPlace;
 
   MapTrack(this._routeResponse, this._currentLatLng, this._trackData,
-      this._etaForPlaces, this._showNotStarted);
+      this._etaForPlaces, this._showNotStarted,this._updateToNextPoint,this._updateToNextPlace,this._polylines);
 
   LatLng get _centeredLatLng {
     return _routeResponse == null ||
@@ -43,53 +44,6 @@ class MapTrack extends StatefulWidget {
         .asUint8List();
   }
 
-  void initPolyLines() {
-    _polylines.clear();
-    var polyLines = decodeEncodedPolyline(
-        _trackData.directionResponse.routes.first.overviewPolyline.points);
-    for (var poly in polyLines) {
-      print(poly);
-      latlng.add(poly);
-      _polylines.add(Polyline(
-        polylineId: PolylineId(_trackData.busId),
-        visible: true,
-        points: latlng,
-        width: 3,
-        color: Colors.black,
-      ));
-    }
-  }
-
-  List<LatLng> decodeEncodedPolyline(String encoded) {
-    List<LatLng> poly = [];
-    int index = 0, len = encoded.length;
-    int lat = 0, lng = 0;
-
-    while (index < len) {
-      int b, shift = 0, result = 0;
-      do {
-        b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-      lat += dlat;
-
-      shift = 0;
-      result = 0;
-      do {
-        b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-      lng += dlng;
-      LatLng p = new LatLng((lat / 1E5).toDouble(), (lng / 1E5).toDouble());
-      poly.add(p);
-    }
-    return poly;
-  }
-
   CameraPosition get _kGooglePlex {
     return CameraPosition(
       target: _centeredLatLng,
@@ -106,9 +60,6 @@ class _MapTrackState extends State<MapTrack> {
   void initState() {
     super.initState();
     widget.initBusIcon();
-    if(!widget._showNotStarted) {
-      widget.initPolyLines();
-    }
   }
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
@@ -127,7 +78,7 @@ class _MapTrackState extends State<MapTrack> {
       for (final place in widget._routeResponse.places) {
         String snippet = widget._etaForPlaces.containsKey(place.id) 
               ? 'ETA = ' + widget._etaForPlaces[place.id]
-              : '';
+              : '-';
         final marker = Marker(
           markerId: MarkerId(place.name),
           position: LatLng(place.lattitude, place.longitude),
@@ -167,12 +118,58 @@ class _MapTrackState extends State<MapTrack> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    Text(
+                    widget._updateToNextPlace == null
+                        ? Text(
                       'eMTe School',
                       style: Theme.of(context)
                           .textTheme
                           .headline
                           .copyWith(fontFamily: 'Precious'),
+                    )
+                        : Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              'eMTe School',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headline
+                                  .copyWith(fontFamily: 'Precious'),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10,),
+                        Container(
+                          width: 60,
+                          child: RaisedButton(
+                            onPressed: widget._updateToNextPoint,
+                            child: Text(
+                              '>',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .button
+                                  .copyWith(fontSize: 18),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10,),
+                        Container(
+                          width: 60,
+                          child: RaisedButton(
+                            onPressed: widget._updateToNextPlace,
+                            color: Theme.of(context).secondaryHeaderColor,
+                            child: Text(
+                              '>>',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .button
+                                  .copyWith(
+                                  color: Colors.black, fontSize: 18),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     SizedBox(
                       height: 20,

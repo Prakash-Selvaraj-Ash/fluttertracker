@@ -12,17 +12,17 @@ class TrackBloc extends BlocBase {
   @provide
   TrackBloc(this._trackRepository);
 
-  Future<BusTrackResponseDto> startBus(StartBusRequest busRequest) async{
+  Future<BusTrackResponseDto> startBus(StartBusRequest busRequest) async =>
     await _trackRepository.startBus(busRequest);
-  }
 
-  Future<dynamic> updateReachedPlace(UpdateReachedPlace updateReachedPlace) async{
+
+  Future<dynamic> updateReachedPlace(UpdateReachedPlace updateReachedPlace) async =>
     await _trackRepository.updateReachedPlace(updateReachedPlace);
-  }
 
-  Future<dynamic> updateCurrentLatLng(UpdateCurrentLatLng updateCurrentLatLng) async{
+
+  Future<dynamic> updateCurrentLatLng(UpdateCurrentLatLng updateCurrentLatLng) async =>
     await _trackRepository.updateCurrentLatLng(updateCurrentLatLng);
-  }
+
 
   Future<BusTrackResponseDto> getBusRouteByUserId(String userId) async =>
     await _trackRepository.getBusRouteByUserId(userId);
