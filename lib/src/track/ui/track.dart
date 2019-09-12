@@ -94,21 +94,24 @@ class _BusTrackState extends State<BusTrack> {
   }
 
   void initializeTrackData() async {
-    var res = widget._isDriver ?
-      await widget._trackBloc
-        .getBusRouteByBusId(App.BUS_IDS[widget._routeId]) :
-      await widget._trackBloc
-        .getBusRouteByUserId(App.user.id);
+    var res = widget._isDriver
+        ? await widget._trackBloc
+            .getBusRouteByBusId(App.BUS_IDS[widget._routeId])
+        : await widget._trackBloc.getBusRouteByUserId(App.user.id);
 
     setState(() {
       widget._trackData = res;
-        if (widget._trackData != null && widget._trackData.busId != null && widget._trackData.lastDestination != null) {
-          setLastDestinationIndex(widget._trackData.lastDestination);
-        }
-        if (widget._trackData != null && widget._trackData.busId != null && widget._trackData.gDirection != null && widget._trackData.directionResponse != null) {
-          initPolyLines();
-        }
-
+      if (widget._trackData != null &&
+          widget._trackData.busId != null &&
+          widget._trackData.lastDestination != null) {
+        setLastDestinationIndex(widget._trackData.lastDestination);
+      }
+      if (widget._trackData != null &&
+          widget._trackData.busId != null &&
+          widget._trackData.gDirection != null &&
+          widget._trackData.directionResponse != null) {
+        initPolyLines();
+      }
 
 //      widget._trackData.lastDestination = widget._routeResponse.places[3];
 //      widget._trackData.currentLattitude = widget._routeResponse.places[2].lattitude;
@@ -141,9 +144,7 @@ class _BusTrackState extends State<BusTrack> {
     }
   }
 
-  void startLocationUpdateTimer() {
-
-  }
+  void startLocationUpdateTimer() {}
 
   void parseTrackData() {
     setState(() {
@@ -190,12 +191,12 @@ class _BusTrackState extends State<BusTrack> {
 
   void updateToNextPoint() {
     widget._lastUpdateIndex += 5;
+    print(widget._lastUpdateIndex);
+    print(widget.latlng.length);
     if (widget.latlng.length > widget._lastUpdateIndex) {
-      setState(() {
-        widget._currentLatLng = widget.latlng[widget._lastUpdateIndex];
-        print("lat"+widget._currentLatLng.latitude.toString());
-        print("lon"+widget._currentLatLng.longitude.toString());
-      });
+      widget._currentLatLng = widget.latlng[widget._lastUpdateIndex];
+      print("lat" + widget._currentLatLng.latitude.toString());
+      print("lon" + widget._currentLatLng.longitude.toString());
       updateCurrentLocation();
       if (widget._lastDestinationIndex <
           (widget._routeResponse.places.length - 1)) {
@@ -212,15 +213,6 @@ class _BusTrackState extends State<BusTrack> {
       }
     } else if (widget._lastDestinationIndex <
         (widget._routeResponse.places.length - 1)) {
-      /*setState(() {
-        widget._currentLatLng = LatLng(
-            widget._routeResponse.places[widget._lastDestinationIndex + 1]
-                .lattitude,
-            widget._routeResponse.places[widget._lastDestinationIndex + 1]
-                .longitude);
-      });
-      updateReachedPlace(
-          widget._routeResponse.places[widget._lastDestinationIndex + 1].id);*/
       updateToNextPlace();
     }
   }
@@ -238,16 +230,15 @@ class _BusTrackState extends State<BusTrack> {
     initializeTrackData();
   }
 
-  void updateToNextPlace() {
+  void updateToNextPlace() async{
     if (widget._routeResponse.places.length >
         (widget._lastDestinationIndex + 1)) {
-      setState(() {
-        widget._currentLatLng = LatLng(
-            widget._routeResponse.places[widget._lastDestinationIndex + 1]
-                .lattitude,
-            widget._routeResponse.places[widget._lastDestinationIndex + 1]
-                .longitude);
-      });
+      widget._currentLatLng = LatLng(
+          widget._routeResponse.places[widget._lastDestinationIndex + 1]
+              .lattitude,
+          widget._routeResponse.places[widget._lastDestinationIndex + 1]
+              .longitude);
+
       updateReachedPlace(
           widget._routeResponse.places[widget._lastDestinationIndex + 1].id);
     }
@@ -264,6 +255,7 @@ class _BusTrackState extends State<BusTrack> {
     dynamic response =
         await widget._trackBloc.updateReachedPlace(updateReachedPlace);
     print(response);
+    initializeTrackData();
   }
 
   void initSignalRListener() {
@@ -273,12 +265,14 @@ class _BusTrackState extends State<BusTrack> {
 
   void _handleBroadCastMessage(List<Object> parameters) {
     var map = parameters.first as String;
-    LiveTrackResponseDto response = LiveTrackResponseDto
-      .fromJson(json.decode(map) as Map<String, dynamic>);
+    LiveTrackResponseDto response =
+        LiveTrackResponseDto.fromJson(json.decode(map) as Map<String, dynamic>);
     widget._trackData.lastDestination = response.lastDestination;
     widget._trackData.currentRouteStatus = response.places;
-    widget._trackData.currentLattitude = response.currentLocationCoordinate.lattitude;
-    widget._trackData.currentLongitude = response.currentLocationCoordinate.longitude;
+    widget._trackData.currentLattitude =
+        response.currentLocationCoordinate.lattitude;
+    widget._trackData.currentLongitude =
+        response.currentLocationCoordinate.longitude;
     parseTrackData();
     print("live response: ");
     print(response);
@@ -319,7 +313,7 @@ class _BusTrackState extends State<BusTrack> {
                 widget._trackData,
                 widget._etaForPlaces,
                 widget._showNotStarted,
-                widget._isDriver ? updateCurrentLocation : null,
+                widget._isDriver ? updateToNextPoint : null,
                 widget._isDriver ? updateToNextPlace : null,
               ),
               MapTrack(
@@ -328,7 +322,7 @@ class _BusTrackState extends State<BusTrack> {
                 widget._trackData,
                 widget._etaForPlaces,
                 widget._showNotStarted,
-                widget._isDriver ? updateCurrentLocation : null,
+                widget._isDriver ? updateToNextPoint : null,
                 widget._isDriver ? updateToNextPlace : null,
                 widget._polylines,
               ),

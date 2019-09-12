@@ -38,6 +38,8 @@ class LineTrack extends StatelessWidget {
             _initialLatLng.longitude.toStringAsFixed(4)) {
       _blinkingDotPosition = 58;
       print(_blinkingDotPosition);
+    }else{
+      _blinkingDotPosition = 28;
     }
 
     for (int i = 0; i < _routeResponse.places.length; i++) {
