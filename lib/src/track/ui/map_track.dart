@@ -125,12 +125,15 @@ class _MapTrackState extends State<MapTrack> {
       );
 
       for (final place in widget._routeResponse.places) {
+        String snippet = widget._etaForPlaces.containsKey(place.id) 
+              ? 'ETA = ' + widget._etaForPlaces[place.id]
+              : '';
         final marker = Marker(
           markerId: MarkerId(place.name),
           position: LatLng(place.lattitude, place.longitude),
           infoWindow: InfoWindow(
             title: place.name,
-            snippet: 'ETA = ' + widget._etaForPlaces[place.id],
+            snippet: snippet,
           ),
         );
         widget._markersList[place.name] = marker;

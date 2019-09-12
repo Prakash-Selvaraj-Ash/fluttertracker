@@ -1,9 +1,11 @@
-import 'package:bus_tracker_client/src/route/models/place_response.dart';
+import 'dart:convert';
+
 import 'package:bus_tracker_client/src/route/models/place_response_eta.dart';
 import 'package:bus_tracker_client/src/route/models/route_response.dart';
 import 'package:bus_tracker_client/src/track/blocs/track_bloc.dart';
 import 'package:bus_tracker_client/src/track/models/bus_track_response_dto.dart';
 import 'package:bus_tracker_client/src/track/models/lat_long.dart';
+import 'package:bus_tracker_client/src/track/models/live_tracker/live_track_response_dto.dart';
 import 'package:bus_tracker_client/src/track/models/start_bus_request.dart';
 import 'package:bus_tracker_client/src/track/models/update_current_lat_lng.dart';
 import 'package:bus_tracker_client/src/track/models/update_reached_place.dart';
@@ -80,8 +82,12 @@ class _BusTrackState extends State<BusTrack> {
   }
 
   void initializeTrackData() async {
-    var res = await widget._trackBloc
-        .getBusRouteByBusId(App.BUS_IDS[widget._routeId]);
+    var res = widget._isDriver ?
+      await widget._trackBloc
+        .getBusRouteByBusId(App.BUS_IDS[widget._routeId]) :
+      await widget._trackBloc
+        .getBusRouteByUserId(App.user.id);
+
     setState(() {
       widget._trackData = res;
 
@@ -97,7 +103,7 @@ class _BusTrackState extends State<BusTrack> {
         } else {
           widget._showNotStarted = true;
         }
-//        initSignalRListener();
+        initSignalRListener();
       }
     });
   }
@@ -194,7 +200,11 @@ class _BusTrackState extends State<BusTrack> {
   }
 
   void _handleBroadCastMessage(List<Object> parameters) {
-    print(parameters);
+    var map = parameters.first as String;
+    LiveTrackResponseDto response = LiveTrackResponseDto
+      .fromJson(json.decode(map) as Map<String, dynamic>);
+    print("live response: ");
+    print(response);
   }
 
   RouteResponse get listRes {
