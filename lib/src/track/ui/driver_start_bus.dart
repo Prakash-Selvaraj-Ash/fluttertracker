@@ -4,6 +4,7 @@ import 'package:bus_tracker_client/src/route/models/route_response.dart';
 import 'package:bus_tracker_client/src/route/ui/route_place_selector.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:toast/toast.dart';
 
 import '../../../app.dart';
 
@@ -24,6 +25,7 @@ class _DriverStartBusState extends State<DriverStartBus> {
 
   @override
   Widget build(BuildContext context) {
+    App.routeId = null;
     return Scaffold(
         appBar: AppBar(title: Text('Select Your Route')),
         body: Center(
@@ -52,7 +54,12 @@ class _DriverStartBusState extends State<DriverStartBus> {
                   ),
                   RaisedButton(
                     onPressed: () async {
-                     await Navigator.pushNamed(context, '/driver/track',);
+                      if(App.routeId == null){
+                        Toast.show("Please select your route", context,
+                            duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+                      }else {
+                        await Navigator.pushNamed(context, '/driver/track',);
+                      }
                     },
                     child: Text(
                       'Start Bus',

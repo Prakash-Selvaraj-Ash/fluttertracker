@@ -9,6 +9,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_tracker_client/app.dart';
+import 'package:toast/toast.dart';
 
 class AuthenticationSignUp extends StatefulWidget {
   final RouteBloc _routeBloc;
@@ -33,6 +34,10 @@ class _AuthenticationSignUpState extends State<AuthenticationSignUp> {
   final TextEditingController _phoneController = TextEditingController();
 
   final TextEditingController _emailController = TextEditingController();
+
+  bool _validEmail = true;
+  bool _validMobile = true;
+  bool _validName = true;
 
   @override
   void initState() {
@@ -62,7 +67,11 @@ class _AuthenticationSignUpState extends State<AuthenticationSignUp> {
                 style: Theme.of(context).textTheme.subtitle,
                 autofocus: false,
                 controller: _nameController,
-                decoration: InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(
+                    labelText: 'Name',
+                    errorText: _validName
+                        ? null
+                        : 'Name must be more than 2 charater'),
                 keyboardType: TextInputType.text,
               ),
               SizedBox(
@@ -72,7 +81,11 @@ class _AuthenticationSignUpState extends State<AuthenticationSignUp> {
                 style: Theme.of(context).textTheme.subtitle,
                 autofocus: false,
                 controller: _phoneController,
-                decoration: InputDecoration(labelText: 'Mobile number'),
+                decoration: InputDecoration(
+                    labelText: 'Mobile number',
+                    errorText: _validMobile
+                        ? null
+                        : 'Mobile Number must be of 10 digit'),
                 keyboardType: TextInputType.number,
               ),
               SizedBox(
@@ -82,7 +95,9 @@ class _AuthenticationSignUpState extends State<AuthenticationSignUp> {
                 style: Theme.of(context).textTheme.subtitle,
                 autofocus: false,
                 controller: _emailController,
-                decoration: InputDecoration(labelText: 'email id'),
+                decoration: InputDecoration(
+                    labelText: 'email id',
+                    errorText: _validEmail ? null : 'Invalid Email Id'),
                 keyboardType: TextInputType.emailAddress,
               ),
               SizedBox(
@@ -99,16 +114,43 @@ class _AuthenticationSignUpState extends State<AuthenticationSignUp> {
               ),
               RaisedButton(
                 onPressed: () async {
-                  UserResponse user = await widget._authenticationBloc
-                      .createUser(CreateUser(
-                          name: _emailController.text,
-                          placeId: _placeResponse.id,
-                          routeId: _routeResponse.id,
-                          fcmId: fcmToken));
-                  App.user = user;
-                  Navigator.pushNamedAndRemoveUntil(
-                      context, 'user/track', (p) => false,
-                      arguments: user);
+                  bool isValidEmail = true;
+                  bool isValidPhone = true;
+                  bool isValidName = true;
+                  if (_nameController.text.isEmpty ||
+                      !validateName(_nameController.text)) {
+                    isValidName = false;
+                  }
+                  if (_phoneController.text.isEmpty ||
+                      !validateMobile(_phoneController.text)) {
+                    isValidPhone = false;
+                  }
+                  if (_emailController.text.isEmpty ||
+                      !validateEmail(_emailController.text)) {
+                    isValidEmail = false;
+                  }
+                  setState(() {
+                    _validName = isValidName;
+                    _validMobile = isValidPhone;
+                    _validEmail = isValidEmail;
+                  });
+                  if (isValidEmail && isValidPhone && isValidName) {
+                    if (_placeResponse == null || _routeResponse == null) {
+                      Toast.show("Please select your route and place", context,
+                          duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+                      return;
+                    }
+                    UserResponse user = await widget._authenticationBloc
+                        .createUser(CreateUser(
+                            name: _emailController.text,
+                            placeId: _placeResponse.id,
+                            routeId: _routeResponse.id,
+                            fcmId: fcmToken));
+                    App.user = user;
+                    Navigator.pushNamedAndRemoveUntil(
+                        context, 'user/track', (p) => false,
+                        arguments: user);
+                  }
                 },
                 child: Text(
                   'Register',
@@ -118,6 +160,31 @@ class _AuthenticationSignUpState extends State<AuthenticationSignUp> {
             ],
           ),
         )));
+  }
+
+  bool validateName(String value) {
+    if (value.length < 3)
+      return false;
+    else
+      return true;
+  }
+
+  bool validateMobile(String value) {
+// Indian Mobile number are of 10 digit only
+    if (value.length != 10)
+      return false;
+    else
+      return true;
+  }
+
+  bool validateEmail(String value) {
+    Pattern pattern =
+        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+    RegExp regex = new RegExp(pattern);
+    if (!regex.hasMatch(value))
+      return false;
+    else
+      return true;
   }
 
   void getFCMToken() {
