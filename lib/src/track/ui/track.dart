@@ -48,12 +48,6 @@ class BusTrack extends StatefulWidget {
         _routeResponse.places[0].longitude + 0.002);
   }
 
-  LatLng get _finalLatLng {
-    return LatLng(
-        _routeResponse.places[_routeResponse.places.length - 1].lattitude,
-        _routeResponse.places[_routeResponse.places.length - 1].longitude);
-  }
-
   double _calculateDistance(LatLng origin, LatLng destination) {
     var p = 0.017453292519943295;
     var c = cos;
@@ -74,7 +68,6 @@ class _BusTrackState extends State<BusTrack> {
   @override
   void initState() {
     super.initState();
-    initBusIcon();
     initializeRoutes();
   }
 
@@ -131,11 +124,13 @@ class _BusTrackState extends State<BusTrack> {
         initLocationUpdates();
       } else {
         if (widget._trackData != null && widget._trackData.busId != null) {
-          parseTrackData();
+          setState(() {
+            parseTrackData();
+          });
         } else {
           widget._showNotStarted = true;
         }
-        initSignalRListener();
+//        initSignalRListener();
       }
 
       if (widget._trackData != null &&
@@ -325,6 +320,7 @@ class _BusTrackState extends State<BusTrack> {
 
   @override
   Widget build(BuildContext context) {
+    initBusIcon();
     return DefaultTabController(
         length: 2,
         child: Scaffold(

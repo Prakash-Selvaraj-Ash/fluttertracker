@@ -13,28 +13,92 @@ import 'package:bus_tracker_client/src/track/ui/driver_start_bus.dart';
 import 'package:bus_tracker_client/src/track/ui/track.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:inject/inject.dart';
 
 class App extends StatelessWidget {
   final RouteBloc routeBloc;
   final TrackBloc trackBloc;
   final AuthenticationBloc authenticationBloc;
-  final FirebaseMessaging firebaseMessaging;
+  final FirebaseMessaging _firebaseMessaging;
   final SignalrServices signalrServices;
   static UserResponse user;
   static List<RouteResponse> routeResonse;
   static String routeId;
   static final HashMap<String, String> BUS_IDS = HashMap();
   static String selectedBusId;
+  static String fcmToken;
+
+  void firebaseCloudMessagingListeners() {
+    _firebaseMessaging.getToken().then((token) {
+      fcmToken = token;
+    });
+
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        print('on message $message');
+        print(message['notification']);
+        print(message['notification']['title']);
+        print(message['notification']['body']);
+
+        FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+// initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
+        var initializationSettingsAndroid =
+        new AndroidInitializationSettings('ic_launcher');
+        var onDidReceiveLocalNotification;
+        var initializationSettingsIOS = new IOSInitializationSettings(
+            onDidReceiveLocalNotification: onDidReceiveLocalNotification);
+        var initializationSettings = new InitializationSettings(
+            initializationSettingsAndroid, initializationSettingsIOS);
+        flutterLocalNotificationsPlugin.initialize(initializationSettings,
+            onSelectNotification: null);
+
+        var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+            'notification_channel', 'notification_channel_name', 'test',
+            importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
+        var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+        var platformChannelSpecifics = NotificationDetails(
+            androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+        await flutterLocalNotificationsPlugin.show(
+            0, message['notification']['title'], message['notification']['body'], platformChannelSpecifics,
+            payload: 'item x');
+
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print('on message $message');
+        print(message['notification']);
+        print(message['notification']['title']);
+        print(message['notification']['body']);
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print('on message $message');
+        print(message['notification']);
+        print(message['notification']['title']);
+        print(message['notification']['body']);
+      },
+    );
+  }
+  Future onSelectNotification(String payload) async {
+    if (payload != null) {
+      debugPrint('notification payload: ' + payload);
+    }
+  }
+
+  void handlingNotification(Map<String,String> message){
+    print('on message $message');
+    print(message['title']);
+    print(message['body']);
+  }
 
   @provide
   App(this.routeBloc, this.trackBloc, this.authenticationBloc,
-      this.firebaseMessaging, this.signalrServices)
+      this._firebaseMessaging, this.signalrServices)
       : super();
 
   @override
   Widget build(BuildContext context) {
     initHashMap();
+    firebaseCloudMessagingListeners();
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -72,7 +136,7 @@ class App extends StatelessWidget {
           case "user/signup":
             return MaterialPageRoute(
                 builder: (_) => AuthenticationSignUp(
-                    routeBloc, authenticationBloc, firebaseMessaging));
+                    routeBloc, authenticationBloc, _firebaseMessaging));
           case "user/login":
             return MaterialPageRoute(
                 builder: (_) => AuthenticationLogin(authenticationBloc));
@@ -92,7 +156,7 @@ class App extends StatelessWidget {
         '/driver/track': (context) =>
             BusTrack(routeId, routeBloc, trackBloc, signalrServices, true),
         '/user/signup': (context) => AuthenticationSignUp(
-            routeBloc, authenticationBloc, firebaseMessaging),
+            routeBloc, authenticationBloc, _firebaseMessaging),
         '/user/login': (context) => AuthenticationLogin(authenticationBloc),
         '/user/track': (context) =>
             BusTrack(routeId, routeBloc, trackBloc, signalrServices, false)

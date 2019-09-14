@@ -34,29 +34,10 @@ class _AuthenticationSignUpState extends State<AuthenticationSignUp> {
 
   final TextEditingController _emailController = TextEditingController();
 
-
   @override
   void initState() {
-    firebaseCloudMessagingListeners();
+    getFCMToken();
     super.initState();
-  }
-
-  void firebaseCloudMessagingListeners() {
-    widget._firebaseMessaging.getToken().then((token) {
-      fcmToken = token;
-    });
-
-    widget._firebaseMessaging.configure(
-      onMessage: (Map<String, dynamic> message) async {
-        print('on message $message');
-      },
-      onResume: (Map<String, dynamic> message) async {
-        print('on resume $message');
-      },
-      onLaunch: (Map<String, dynamic> message) async {
-        print('on launch $message');
-      },
-    );
   }
 
   @override
@@ -69,12 +50,11 @@ class _AuthenticationSignUpState extends State<AuthenticationSignUp> {
           padding: EdgeInsets.all(10),
           child: Column(
             children: <Widget>[
-              Text(
-                'eMTe School',
-                style: Theme.of(context)
-                    .textTheme
-                    .headline.copyWith(fontFamily: 'Precious')
-              ),
+              Text('eMTe School',
+                  style: Theme.of(context)
+                      .textTheme
+                      .headline
+                      .copyWith(fontFamily: 'Precious')),
               SizedBox(
                 height: 20,
               ),
@@ -108,25 +88,27 @@ class _AuthenticationSignUpState extends State<AuthenticationSignUp> {
               SizedBox(
                 height: 20,
               ),
-              RoutePlaceSelector( widget._routeBloc, (route, place) {
+              RoutePlaceSelector(widget._routeBloc, (route, place) {
                 setState(() {
                   _routeResponse = route;
                   _placeResponse = place;
                 });
-              },true),
+              }, true),
               SizedBox(
                 height: 70,
               ),
               RaisedButton(
                 onPressed: () async {
-                  UserResponse user = await  widget._authenticationBloc.createUser(
-                      CreateUser(
+                  UserResponse user = await widget._authenticationBloc
+                      .createUser(CreateUser(
                           name: _emailController.text,
                           placeId: _placeResponse.id,
                           routeId: _routeResponse.id,
                           fcmId: fcmToken));
                   App.user = user;
-                  Navigator.pushNamedAndRemoveUntil(context, 'user/track', (p) => false, arguments: user);
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, 'user/track', (p) => false,
+                      arguments: user);
                 },
                 child: Text(
                   'Register',
@@ -136,5 +118,15 @@ class _AuthenticationSignUpState extends State<AuthenticationSignUp> {
             ],
           ),
         )));
+  }
+
+  void getFCMToken() {
+    if (App.fcmToken == null) {
+      widget._firebaseMessaging.getToken().then((token) {
+        fcmToken = token;
+      });
+    } else {
+      fcmToken = App.fcmToken;
+    }
   }
 }
