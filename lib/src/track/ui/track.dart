@@ -332,24 +332,14 @@ class _BusTrackState extends State<BusTrack> {
             title: Text('Bus Tracking'),
             bottom: TabBar(
               tabs: [
-                Icon(Icons.linear_scale),
                 Icon(Icons.map),
+                Icon(Icons.linear_scale),
               ],
             ),
           ),
           body: TabBarView(
             physics: NeverScrollableScrollPhysics(),
             children: [
-              LineTrack(
-                widget._routeResponse,
-                widget._currentLatLng,
-                widget._trackData,
-                widget._etaForPlaces,
-                widget._showNotStarted,
-                widget._isDriver ? updateToNextPoint : null,
-                widget._isDriver ? updateToNextPlace : null,
-                widget._showFinised,
-              ),
               MapTrack(
                 widget._routeResponse,
                 widget._currentLatLng,
@@ -359,6 +349,16 @@ class _BusTrackState extends State<BusTrack> {
                 widget._isDriver ? updateToNextPoint : null,
                 widget._isDriver ? updateToNextPlace : null,
                 widget._polylines,
+                widget._showFinised,
+              ),
+              LineTrack(
+                widget._routeResponse,
+                widget._currentLatLng,
+                widget._trackData,
+                widget._etaForPlaces,
+                widget._showNotStarted,
+                widget._isDriver ? updateToNextPoint : null,
+                widget._isDriver ? updateToNextPlace : null,
                 widget._showFinised,
               ),
             ],
