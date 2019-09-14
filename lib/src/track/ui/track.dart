@@ -127,6 +127,7 @@ class _BusTrackState extends State<BusTrack> {
       } else {
         if (widget._trackData != null && widget._trackData.busId != null) {
           setState(() {
+            widget._showNotStarted = false;
             parseTrackData();
           });
         } else {

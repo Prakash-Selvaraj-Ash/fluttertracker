@@ -82,6 +82,7 @@ class _MapTrackState extends State<MapTrack> {
         ? Center(
             child: Text(
               text,
+              textAlign: TextAlign.center,
               style: Theme.of(context)
                   .textTheme
                   .headline

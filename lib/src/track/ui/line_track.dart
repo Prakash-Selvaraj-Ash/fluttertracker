@@ -93,6 +93,7 @@ class LineTrack extends StatelessWidget {
         ? Center(
             child: Text(
               text,
+              textAlign: TextAlign.center,
               style: Theme.of(context)
                   .textTheme
                   .headline
