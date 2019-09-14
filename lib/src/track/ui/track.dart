@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:bus_tracker_client/src/route/models/place_response.dart';
 import 'package:bus_tracker_client/src/route/models/place_response_eta.dart';
 import 'package:bus_tracker_client/src/route/models/route_response.dart';
@@ -17,6 +18,8 @@ import '../../../app.dart';
 import './line_track.dart';
 import './map_track.dart';
 import 'dart:math' show cos, sqrt, asin;
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:ui' as ui;
 
 class BusTrack extends StatefulWidget {
   final String _routeId;
@@ -34,6 +37,8 @@ class BusTrack extends StatefulWidget {
   int _lastUpdateIndex = -1;
   final Set<Polyline> _polylines = {};
   List<LatLng> latlng = [];
+  Map<String, Marker> _markersList = {};
+  Uint8List _myIcon;
 
   BusTrack(this._routeId, this._routeBloc, this._trackBloc,
       this._signalrServices, this._isDriver);
@@ -69,6 +74,7 @@ class _BusTrackState extends State<BusTrack> {
   @override
   void initState() {
     super.initState();
+    initBusIcon();
     initializeRoutes();
   }
 
@@ -114,8 +120,24 @@ class _BusTrackState extends State<BusTrack> {
             .getBusRouteByBusId(App.BUS_IDS[widget._routeId])
         : await widget._trackBloc.getBusRouteByUserId(App.user.id);
 
+    onTrackResponseReceived(res);
+  }
+
+  void onTrackResponseReceived(BusTrackResponseDto res) {
     setState(() {
       widget._trackData = res;
+
+      if (widget._isDriver) {
+        initLocationUpdates();
+      } else {
+        if (widget._trackData != null && widget._trackData.busId != null) {
+          parseTrackData();
+        } else {
+          widget._showNotStarted = true;
+        }
+        initSignalRListener();
+      }
+
       if (widget._trackData != null &&
           widget._trackData.busId != null &&
           widget._trackData.lastDestination != null) {
@@ -130,7 +152,10 @@ class _BusTrackState extends State<BusTrack> {
           widget._trackData.busId != null &&
           widget._trackData.gDirection != null &&
           widget._trackData.directionResponse != null) {
-        initPolyLines();
+        setState(() {
+          initPolyLines();
+          setMarkersList();
+        });
       }
       if (widget._trackData != null &&
           widget._trackData.busId != null &&
@@ -139,21 +164,6 @@ class _BusTrackState extends State<BusTrack> {
         widget._lastUpdateIndex = getNearPointIndex(LatLng(
             widget._trackData.currentLattitude,
             widget._trackData.currentLongitude));
-      }
-
-//      widget._trackData.lastDestination = widget._routeResponse.places[3];
-//      widget._trackData.currentLattitude = widget._routeResponse.places[2].lattitude;
-//      widget._trackData.currentLongitude = widget._routeResponse.places[2].longitude;
-
-      if (widget._isDriver) {
-        initLocationUpdates();
-      } else {
-        if (widget._trackData != null && widget._trackData.busId != null) {
-          parseTrackData();
-        } else {
-          widget._showNotStarted = true;
-        }
-        initSignalRListener();
       }
     });
   }
@@ -168,11 +178,8 @@ class _BusTrackState extends State<BusTrack> {
       updateBusStarted();
     } else {
       parseTrackData();
-      startLocationUpdateTimer();
     }
   }
-
-  void startLocationUpdateTimer() {}
 
   void parseTrackData() {
     setState(() {
@@ -208,13 +215,13 @@ class _BusTrackState extends State<BusTrack> {
     );
     var response = await widget._trackBloc.startBus(busRequest);
     print(response);
-    setState(() {
-      widget._trackData = response;
-      if (widget._trackData != null && widget._trackData.busId != null) {
-        parseTrackData();
-        startLocationUpdateTimer();
-      }
-    });
+    onTrackResponseReceived(response);
+//    setState(() {
+//      widget._trackData = response;
+//      if (widget._trackData != null && widget._trackData.busId != null) {
+//        parseTrackData();
+//      }
+//    });
   }
 
   void updateToNextPoint() {
@@ -347,7 +354,7 @@ class _BusTrackState extends State<BusTrack> {
                 widget._routeResponse,
                 widget._currentLatLng,
                 widget._trackData,
-                widget._etaForPlaces,
+                widget._markersList,
                 widget._showNotStarted,
                 widget._isDriver ? updateToNextPoint : null,
                 widget._isDriver ? updateToNextPlace : null,
@@ -357,6 +364,80 @@ class _BusTrackState extends State<BusTrack> {
             ],
           ),
         ));
+  }
+
+  void initBusIcon() async {
+    widget._myIcon = await getBytesFromAsset('assets/images/busicon.png', 100);
+  }
+
+  Future<Uint8List> getBytesFromAsset(String path, int width) async {
+    ByteData data = await rootBundle.load(path);
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
+        targetWidth: width);
+    ui.FrameInfo fi = await codec.getNextFrame();
+    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))
+        .buffer
+        .asUint8List();
+  }
+
+  void setMarkersList() {
+    if (widget._markersList.length == 0) {
+      Map<String, Marker> list = Map();
+      list['current position'] = Marker(
+        markerId: MarkerId('current position'),
+        position: widget._currentLatLng,
+        icon: BitmapDescriptor.fromBytes(widget._myIcon),
+        infoWindow: InfoWindow(
+          title: 'current position',
+          snippet: '-',
+        ),
+      );
+
+      for (final place in widget._routeResponse.places) {
+        String snippet = widget._etaForPlaces.containsKey(place.id)
+            ? 'ETA = ' + widget._etaForPlaces[place.id]
+            : '-';
+        final marker = Marker(
+          markerId: MarkerId(place.name),
+          position: LatLng(place.lattitude, place.longitude),
+          infoWindow: InfoWindow(
+            title: place.name,
+            snippet: snippet,
+          ),
+        );
+        list[place.name] = marker;
+      }
+      setState(() {
+        widget._markersList.clear();
+        widget._markersList = list;
+      });
+    } else {
+      setState(() {
+        widget._markersList['current position'] = Marker(
+          markerId: MarkerId('current position'),
+          position: widget._currentLatLng,
+          icon: BitmapDescriptor.fromBytes(widget._myIcon),
+          infoWindow: InfoWindow(
+            title: 'current position',
+            snippet: '-',
+          ),
+        );
+        for (final place in widget._routeResponse.places) {
+          String snippet = widget._etaForPlaces.containsKey(place.id)
+              ? 'ETA = ' + widget._etaForPlaces[place.id]
+              : '-';
+          final marker = Marker(
+            markerId: MarkerId(place.name),
+            position: LatLng(place.lattitude, place.longitude),
+            infoWindow: InfoWindow(
+              title: place.name,
+              snippet: snippet,
+            ),
+          );
+          widget._markersList[place.name] = marker;
+        }
+      });
+    }
   }
 
   void initPolyLines() {
