@@ -146,6 +146,6 @@ class _AuthenticationLoginState extends State<AuthenticationLogin> {
     if (value != '1234')
       return false;
     else
-      return null;
+      return true;
   }
 }
