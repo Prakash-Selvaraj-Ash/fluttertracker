@@ -3,13 +3,11 @@ import 'package:bus_tracker_client/src/route/models/place_response.dart';
 import 'package:bus_tracker_client/src/track/models/bus_track_response_dto.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import './blinking_widget.dart';
 import './dot_widget.dart';
 
 class LineTrack extends StatelessWidget {
   final RouteResponse _routeResponse;
   double _blinkingDotPosition = 28;
-  bool _blinkingEnabled = false;
   var _trackingText = "Bus Started";
   final LatLng _currentLatLng;
   final BusTrackResponseDto _trackData;
@@ -85,7 +83,7 @@ class LineTrack extends StatelessWidget {
 
     String text = '';
 
-    if(_showNotStarted) {
+    if (_showNotStarted) {
       text = 'Bus Not Started';
     }
     if (_showFinished) {
@@ -229,17 +227,15 @@ class LineTrack extends StatelessWidget {
                                   }).toList()
                                 ],
                               ),
-                              _blinkingEnabled
-                                  ? BlinkingDot(_blinkingDotPosition)
-                                  : Container(
-                                      margin: EdgeInsets.fromLTRB(
-                                          _blinkingDotPosition, 0, 0, 0),
-                                      child: CircleAvatar(
-                                        radius: 10,
-                                        backgroundColor: Colors.purple,
-                                        child: SizedBox(),
-                                      ),
-                                    ),
+                              Container(
+                                margin: EdgeInsets.fromLTRB(
+                                    _blinkingDotPosition, 0, 0, 0),
+                                child: CircleAvatar(
+                                  radius: 10,
+                                  backgroundColor: Colors.purple,
+                                  child: SizedBox(),
+                                ),
+                              ),
                             ],
                           ),
                         ),
