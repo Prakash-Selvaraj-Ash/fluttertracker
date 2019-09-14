@@ -29,6 +29,7 @@ class BusTrack extends StatefulWidget {
   BusTrackResponseDto _trackData;
   Map<String, String> _etaForPlaces = Map();
   bool _showNotStarted = false;
+  bool _showFinised = false;
   int _lastDestinationIndex = -1;
   int _lastUpdateIndex = -1;
   final Set<Polyline> _polylines = {};
@@ -85,6 +86,20 @@ class _BusTrackState extends State<BusTrack> {
     });
   }
 
+  int getNearPointIndex(LatLng currentLatLng) {
+    double minDistance = 999;
+    int minDistanceIndex = -1;
+    for (int i = 0; i < widget.latlng.length; i++) {
+      double distance = widget._calculateDistance(currentLatLng,
+          LatLng(widget.latlng[i].latitude, widget.latlng[i].longitude));
+      if (distance < minDistance) {
+        minDistanceIndex = i;
+        minDistance = distance;
+      }
+    }
+    return minDistanceIndex;
+  }
+
   void setLastDestinationIndex(PlaceResponse lastPlace) {
     for (int i = 0; i < widget._routeResponse.places.length; i++) {
       if (lastPlace.id == widget._routeResponse.places[i].id) {
@@ -105,12 +120,25 @@ class _BusTrackState extends State<BusTrack> {
           widget._trackData.busId != null &&
           widget._trackData.lastDestination != null) {
         setLastDestinationIndex(widget._trackData.lastDestination);
+        if (widget._lastDestinationIndex ==
+            (widget._routeResponse.places.length - 1)) {
+          widget._showFinised = true;
+          return;
+        }
       }
       if (widget._trackData != null &&
           widget._trackData.busId != null &&
           widget._trackData.gDirection != null &&
           widget._trackData.directionResponse != null) {
         initPolyLines();
+      }
+      if (widget._trackData != null &&
+          widget._trackData.busId != null &&
+          widget._trackData.currentLattitude != null &&
+          widget._trackData.currentLongitude != null) {
+        widget._lastUpdateIndex = getNearPointIndex(LatLng(
+            widget._trackData.currentLattitude,
+            widget._trackData.currentLongitude));
       }
 
 //      widget._trackData.lastDestination = widget._routeResponse.places[3];
@@ -197,17 +225,14 @@ class _BusTrackState extends State<BusTrack> {
       widget._currentLatLng = widget.latlng[widget._lastUpdateIndex];
       print("lat" + widget._currentLatLng.latitude.toString());
       print("lon" + widget._currentLatLng.longitude.toString());
-      updateCurrentLocation();
       if (widget._lastDestinationIndex <
           (widget._routeResponse.places.length - 1)) {
-        if (widget._calculateDistance(
-                widget._currentLatLng,
-                LatLng(
-                    widget._routeResponse
-                        .places[widget._lastDestinationIndex + 1].lattitude,
-                    widget._routeResponse
-                        .places[widget._lastDestinationIndex + 1].longitude)) <
-            0.15) {
+        if (widget._lastUpdateIndex >
+            getNearPointIndex(LatLng(
+                widget._routeResponse.places[widget._lastDestinationIndex + 1]
+                    .lattitude,
+                widget._routeResponse.places[widget._lastDestinationIndex + 1]
+                    .longitude))) {
           updateToNextPlace();
         }
       }
@@ -215,6 +240,7 @@ class _BusTrackState extends State<BusTrack> {
         (widget._routeResponse.places.length - 1)) {
       updateToNextPlace();
     }
+    updateCurrentLocation();
   }
 
   void updateCurrentLocation() async {
@@ -230,7 +256,7 @@ class _BusTrackState extends State<BusTrack> {
     initializeTrackData();
   }
 
-  void updateToNextPlace() async{
+  void updateToNextPlace() async {
     if (widget._routeResponse.places.length >
         (widget._lastDestinationIndex + 1)) {
       widget._currentLatLng = LatLng(
@@ -315,6 +341,7 @@ class _BusTrackState extends State<BusTrack> {
                 widget._showNotStarted,
                 widget._isDriver ? updateToNextPoint : null,
                 widget._isDriver ? updateToNextPlace : null,
+                widget._showFinised,
               ),
               MapTrack(
                 widget._routeResponse,
@@ -325,6 +352,7 @@ class _BusTrackState extends State<BusTrack> {
                 widget._isDriver ? updateToNextPoint : null,
                 widget._isDriver ? updateToNextPlace : null,
                 widget._polylines,
+                widget._showFinised,
               ),
             ],
           ),
@@ -332,19 +360,24 @@ class _BusTrackState extends State<BusTrack> {
   }
 
   void initPolyLines() {
-    widget._polylines.clear();
-    var polyLines = decodeEncodedPolyline(widget
-        ._trackData.directionResponse.routes.first.overviewPolyline.points);
-    for (var poly in polyLines) {
-      print(poly);
-      widget.latlng.add(poly);
-      widget._polylines.add(Polyline(
-        polylineId: PolylineId(widget._trackData.busId),
-        visible: true,
-        points: widget.latlng,
-        width: 3,
-        color: Colors.black,
-      ));
+    if (widget.latlng == null ||
+        widget._polylines == null ||
+        widget.latlng.isEmpty ||
+        widget._polylines.isEmpty) {
+      widget._polylines.clear();
+      var polyLines = decodeEncodedPolyline(widget
+          ._trackData.directionResponse.routes.first.overviewPolyline.points);
+      for (var poly in polyLines) {
+        print(poly);
+        widget.latlng.add(poly);
+        widget._polylines.add(Polyline(
+          polylineId: PolylineId(widget._trackData.busId),
+          visible: true,
+          points: widget.latlng,
+          width: 3,
+          color: Colors.black,
+        ));
+      }
     }
   }
 

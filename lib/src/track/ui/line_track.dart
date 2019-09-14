@@ -16,11 +16,19 @@ class LineTrack extends StatelessWidget {
   final Map<String, String> _etaForPlaces;
   final ScrollController _scrollController = ScrollController();
   final bool _showNotStarted;
+  final bool _showFinished;
   final Function _updateToNextPoint;
   final Function _updateToNextPlace;
 
-  LineTrack(this._routeResponse, this._currentLatLng, this._trackData,
-      this._etaForPlaces, this._showNotStarted,this._updateToNextPoint,this._updateToNextPlace);
+  LineTrack(
+      this._routeResponse,
+      this._currentLatLng,
+      this._trackData,
+      this._etaForPlaces,
+      this._showNotStarted,
+      this._updateToNextPoint,
+      this._updateToNextPlace,
+      this._showFinished);
 
   LatLng get _initialLatLng {
     return LatLng(_routeResponse.places[0].lattitude + 0.002,
@@ -33,17 +41,16 @@ class LineTrack extends StatelessWidget {
         _currentLatLng.longitude.toString());*/
 
     if (_currentLatLng.latitude.toStringAsFixed(4) !=
-        _initialLatLng.latitude.toStringAsFixed(4) ||
+            _initialLatLng.latitude.toStringAsFixed(4) ||
         _currentLatLng.longitude.toStringAsFixed(4) !=
             _initialLatLng.longitude.toStringAsFixed(4)) {
       _blinkingDotPosition = 58;
-      print(_blinkingDotPosition);
-    }else{
+    } else {
       _blinkingDotPosition = 28;
     }
 
     for (int i = 0; i < _routeResponse.places.length; i++) {
-     /* print(_routeResponse.places[i].lattitude.toString() +
+      /* print(_routeResponse.places[i].lattitude.toString() +
           " - " +
           _routeResponse.places[i].longitude.toString());*/
       if (_currentLatLng.latitude.toStringAsFixed(4) ==
@@ -51,8 +58,8 @@ class LineTrack extends StatelessWidget {
           _currentLatLng.longitude.toStringAsFixed(4) ==
               _routeResponse.places[i].longitude.toStringAsFixed(4)) {
         _blinkingDotPosition = (((i + 1) * 100) + 15).toDouble();
-      }
-      if (_trackData != null && _trackData.lastDestination != null &&
+      } else if (_trackData != null &&
+          _trackData.lastDestination != null &&
           _trackData.lastDestination.id == _routeResponse.places[i].id) {
         if (i == _routeResponse.places.length - 1) {
           _blinkingDotPosition = (((i + 1) * 100) + 15).toDouble();
@@ -61,6 +68,8 @@ class LineTrack extends StatelessWidget {
         }
       }
     }
+
+    print(_blinkingDotPosition);
 //    _scrollController.animateTo(_blinkingDotPosition,
 //        duration: Duration(milliseconds: 500), curve: Curves.ease);
   }
@@ -73,10 +82,19 @@ class LineTrack extends StatelessWidget {
     print(_routeResponse);
     print(_currentLatLng);
     print(_trackData);
-    return _showNotStarted
+
+    String text = '';
+
+    if(_showNotStarted) {
+      text = 'Bus Not Started';
+    }
+    if (_showFinished) {
+      text = 'Bus Reached Destination';
+    }
+    return text.isNotEmpty
         ? Center(
             child: Text(
-              'Bus Not Started',
+              text,
               style: Theme.of(context)
                   .textTheme
                   .headline
@@ -116,7 +134,9 @@ class LineTrack extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 10,),
+                              SizedBox(
+                                width: 10,
+                              ),
                               Container(
                                 width: 60,
                                 child: RaisedButton(
@@ -130,7 +150,9 @@ class LineTrack extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 10,),
+                              SizedBox(
+                                width: 10,
+                              ),
                               Container(
                                 width: 60,
                                 child: RaisedButton(

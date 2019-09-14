@@ -11,16 +11,25 @@ class MapTrack extends StatefulWidget {
   final RouteResponse _routeResponse;
   final LatLng _currentLatLng;
   Uint8List _myIcon;
-  final Map<String, Marker> _markersList = {};
+  Map<String, Marker> _markersList = {};
   final BusTrackResponseDto _trackData;
   final Map<String, String> _etaForPlaces;
   final Set<Polyline> _polylines;
   final bool _showNotStarted;
   final Function _updateToNextPoint;
   final Function _updateToNextPlace;
+  final bool _showFinished;
 
-  MapTrack(this._routeResponse, this._currentLatLng, this._trackData,
-      this._etaForPlaces, this._showNotStarted,this._updateToNextPoint,this._updateToNextPlace,this._polylines);
+  MapTrack(
+      this._routeResponse,
+      this._currentLatLng,
+      this._trackData,
+      this._etaForPlaces,
+      this._showNotStarted,
+      this._updateToNextPoint,
+      this._updateToNextPlace,
+      this._polylines,
+      this._showFinished);
 
   LatLng get _centeredLatLng {
     return _routeResponse == null ||
@@ -56,16 +65,10 @@ class MapTrack extends StatefulWidget {
 }
 
 class _MapTrackState extends State<MapTrack> {
-  @override
-  void initState() {
-    super.initState();
-    widget.initBusIcon();
-  }
-
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    setState(() {
-      widget._markersList.clear();
-      widget._markersList['current position'] = Marker(
+  void setMarkersList() {
+    if (widget._markersList.length == 0) {
+      Map<String, Marker> list = Map();
+      list['current position'] = Marker(
         markerId: MarkerId('current position'),
         position: widget._centeredLatLng,
         icon: BitmapDescriptor.fromBytes(widget._myIcon),
@@ -76,9 +79,9 @@ class _MapTrackState extends State<MapTrack> {
       );
 
       for (final place in widget._routeResponse.places) {
-        String snippet = widget._etaForPlaces.containsKey(place.id) 
-              ? 'ETA = ' + widget._etaForPlaces[place.id]
-              : '-';
+        String snippet = widget._etaForPlaces.containsKey(place.id)
+            ? 'ETA = ' + widget._etaForPlaces[place.id]
+            : '-';
         final marker = Marker(
           markerId: MarkerId(place.name),
           position: LatLng(place.lattitude, place.longitude),
@@ -87,17 +90,70 @@ class _MapTrackState extends State<MapTrack> {
             snippet: snippet,
           ),
         );
-        widget._markersList[place.name] = marker;
+        list[place.name] = marker;
       }
-    });
+      setState(() {
+        widget._markersList.clear();
+        widget._markersList = list;
+      });
+    } else {
+      setState(() {
+        widget._markersList['current position'] = Marker(
+          markerId: MarkerId('current position'),
+          position: widget._centeredLatLng,
+          icon: BitmapDescriptor.fromBytes(widget._myIcon),
+          infoWindow: InfoWindow(
+            title: 'current position',
+            snippet: '-',
+          ),
+        );
+        for (final place in widget._routeResponse.places) {
+          String snippet = widget._etaForPlaces.containsKey(place.id)
+              ? 'ETA = ' + widget._etaForPlaces[place.id]
+              : '-';
+          final marker = Marker(
+            markerId: MarkerId(place.name),
+            position: LatLng(place.lattitude, place.longitude),
+            infoWindow: InfoWindow(
+              title: place.name,
+              snippet: snippet,
+            ),
+          );
+          widget._markersList[place.name] = marker;
+        }
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<void> _onMapCreated(GoogleMapController controller) async {
+    setMarkersList();
   }
 
   @override
   Widget build(BuildContext context) {
-    return widget._showNotStarted
+    String text = '';
+    widget.initBusIcon();
+
+    if (widget._showNotStarted) {
+      text = 'Bus Not Started';
+    }
+    if (widget._showFinished) {
+      text = 'Bus Reached Destination';
+    }
+//    if (widget._routeResponse != null &&
+//        widget._currentLatLng != null &&
+//        widget._trackData != null) {
+//      setMarkersList();
+//    }
+    return text.isNotEmpty
         ? Center(
             child: Text(
-              'Bus Not Started',
+              text,
               style: Theme.of(context)
                   .textTheme
                   .headline
@@ -120,57 +176,61 @@ class _MapTrackState extends State<MapTrack> {
                   children: <Widget>[
                     widget._updateToNextPlace == null
                         ? Text(
-                      'eMTe School',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headline
-                          .copyWith(fontFamily: 'Precious'),
-                    )
+                            'eMTe School',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headline
+                                .copyWith(fontFamily: 'Precious'),
+                          )
                         : Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              'eMTe School',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headline
-                                  .copyWith(fontFamily: 'Precious'),
-                            ),
+                            children: <Widget>[
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    'eMTe School',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headline
+                                        .copyWith(fontFamily: 'Precious'),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Container(
+                                width: 60,
+                                child: RaisedButton(
+                                  onPressed: widget._updateToNextPoint,
+                                  child: Text(
+                                    '>',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .button
+                                        .copyWith(fontSize: 18),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Container(
+                                width: 60,
+                                child: RaisedButton(
+                                  onPressed: widget._updateToNextPlace,
+                                  color: Theme.of(context).secondaryHeaderColor,
+                                  child: Text(
+                                    '>>',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .button
+                                        .copyWith(
+                                            color: Colors.black, fontSize: 18),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        SizedBox(width: 10,),
-                        Container(
-                          width: 60,
-                          child: RaisedButton(
-                            onPressed: widget._updateToNextPoint,
-                            child: Text(
-                              '>',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .button
-                                  .copyWith(fontSize: 18),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10,),
-                        Container(
-                          width: 60,
-                          child: RaisedButton(
-                            onPressed: widget._updateToNextPlace,
-                            color: Theme.of(context).secondaryHeaderColor,
-                            child: Text(
-                              '>>',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .button
-                                  .copyWith(
-                                  color: Colors.black, fontSize: 18),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                     SizedBox(
                       height: 20,
                     ),
