@@ -13,7 +13,8 @@ class RoutePlaceSelector extends StatefulWidget {
   final PlaceResponseCallback _onRouteSelected;
   final bool _placeSelectionNeeded;
 
-  RoutePlaceSelector(this._routeBloc, this._onRouteSelected,this._placeSelectionNeeded);
+  RoutePlaceSelector(
+      this._routeBloc, this._onRouteSelected, this._placeSelectionNeeded);
 
   @override
   State<StatefulWidget> createState() {
@@ -22,7 +23,6 @@ class RoutePlaceSelector extends StatefulWidget {
 }
 
 class _RoutePlaceSelectorState extends State<RoutePlaceSelector> {
-
   _RoutePlaceSelectorState() {
     this._routeResponses = List<RouteResponse>();
     this._placeResponses = List<PlaceResponse>();
@@ -42,11 +42,11 @@ class _RoutePlaceSelectorState extends State<RoutePlaceSelector> {
   void initializeRoutes() async {
     var routes;
 
-    if(App.routeResonse == null) {
+    if (App.routeResonse == null) {
       routes = await widget._routeBloc.getAllRoutes();
       App.routeResonse = routes;
-    }else{
-     routes = App.routeResonse;
+    } else {
+      routes = App.routeResonse;
     }
 
     setState(() {
@@ -57,27 +57,29 @@ class _RoutePlaceSelectorState extends State<RoutePlaceSelector> {
   getRouteDropDown() {
     return _routeResponses.length == 0
         ? Text('No Routes Available')
-        : DropdownButton(
-            hint: _selectedRoute != null
-                ? Text(_selectedRoute.toString())
-                : Text('Please select route'),
-            onChanged: (RouteResponse selectedValue) {
-              setState(() {
-                _selectedRoute = selectedValue;
-                App.routeId = selectedValue.id;
-                _placeResponse = null;
-                _placeResponses = selectedValue.places;
-              });
-            },
-            items: _routeResponses.map((route) {
-              return DropdownMenuItem(
-                child: SizedBox(
-                  width: 300.0, // for example
-                  child: Text(route.toString(), textAlign: TextAlign.left),
-                ),
-                value: route,
-              );
-            }).toList());
+        : Container(
+            width: 300,
+            child: FittedBox(
+              child: DropdownButton(
+                  hint: _selectedRoute != null
+                      ? Text(_selectedRoute.toString())
+                      : Text('Please select route'),
+                  onChanged: (RouteResponse selectedValue) {
+                    setState(() {
+                      _selectedRoute = selectedValue;
+                      App.routeId = selectedValue.id;
+                      _placeResponse = null;
+                      _placeResponses = selectedValue.places;
+                    });
+                  },
+                  items: _routeResponses.map((route) {
+                    return DropdownMenuItem(
+                      child: Text(route.toString(), textAlign: TextAlign.left),
+                      value: route,
+                    );
+                  }).toList()),
+            ),
+          );
   }
 
   getPlaceDropDown() {
@@ -96,7 +98,7 @@ class _RoutePlaceSelectorState extends State<RoutePlaceSelector> {
             items: _placeResponses.map((place) {
               return DropdownMenuItem(
                 child: SizedBox(
-                  width: 300,
+                  width: 280,
                   child: Text(place.name, textAlign: TextAlign.left),
                 ),
                 value: place,
@@ -113,7 +115,7 @@ class _RoutePlaceSelectorState extends State<RoutePlaceSelector> {
           SizedBox(
             height: 20,
           ),
-         widget._placeSelectionNeeded ? getPlaceDropDown() : SizedBox()
+          widget._placeSelectionNeeded ? getPlaceDropDown() : SizedBox()
         ],
       ),
     );

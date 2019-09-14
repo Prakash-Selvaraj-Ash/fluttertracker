@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:bus_tracker_client/src/route/models/place_response.dart';
@@ -39,6 +40,7 @@ class BusTrack extends StatefulWidget {
   List<LatLng> latlng = [];
   Map<String, Marker> _markersList = {};
   Uint8List _myIcon;
+  Timer _timer;
 
   BusTrack(this._routeId, this._routeBloc, this._trackBloc,
       this._signalrServices, this._isDriver);
@@ -130,7 +132,7 @@ class _BusTrackState extends State<BusTrack> {
         } else {
           widget._showNotStarted = true;
         }
-//        initSignalRListener();
+        initSignalRListener();
       }
 
       if (widget._trackData != null &&
@@ -287,8 +289,22 @@ class _BusTrackState extends State<BusTrack> {
   }
 
   void initSignalRListener() {
-    widget._signalrServices.initialize(_handleBroadCastMessage);
-    widget._signalrServices.start(App.user.id);
+//    widget._signalrServices.initialize(_handleBroadCastMessage);
+//    widget._signalrServices.start(App.user.id);
+    if (widget._timer == null) {
+      const timePeriod = const Duration(seconds: 7);
+      widget._timer =
+          new Timer.periodic(timePeriod, (Timer t) => initializeTrackData());
+    }
+  }
+
+  @override
+  void dispose() {
+    if (widget._timer != null) {
+      widget._timer.cancel();
+      widget._timer = null;
+    }
+    super.dispose();
   }
 
   void _handleBroadCastMessage(List<Object> parameters) {
