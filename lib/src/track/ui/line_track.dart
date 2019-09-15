@@ -17,6 +17,7 @@ class LineTrack extends StatelessWidget {
   final bool _showFinished;
   final Function _updateToNextPoint;
   final Function _updateToNextPlace;
+  final double _calculateDotPostion;
 
   LineTrack(
       this._routeResponse,
@@ -26,7 +27,8 @@ class LineTrack extends StatelessWidget {
       this._showNotStarted,
       this._updateToNextPoint,
       this._updateToNextPlace,
-      this._showFinished);
+      this._showFinished,
+      this._calculateDotPostion);
 
   LatLng get _initialLatLng {
     return LatLng(_routeResponse.places[0].lattitude + 0.002,
@@ -42,7 +44,7 @@ class LineTrack extends StatelessWidget {
             _initialLatLng.latitude.toStringAsFixed(4) ||
         _currentLatLng.longitude.toStringAsFixed(4) !=
             _initialLatLng.longitude.toStringAsFixed(4)) {
-      _blinkingDotPosition = 58;
+      _blinkingDotPosition = 28 + _calculateDotPostion;
     } else {
       _blinkingDotPosition = 28;
     }
@@ -62,7 +64,7 @@ class LineTrack extends StatelessWidget {
         if (i == _routeResponse.places.length - 1) {
           _blinkingDotPosition = (((i + 1) * 100) + 15).toDouble();
         } else {
-          _blinkingDotPosition = (((i + 1) * 100) + 15).toDouble() + 30;
+          _blinkingDotPosition = (((i + 1) * 100) + 15).toDouble() + _calculateDotPostion;
         }
       }
     }

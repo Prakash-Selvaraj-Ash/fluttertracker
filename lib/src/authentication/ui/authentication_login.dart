@@ -9,6 +9,7 @@ import 'package:bus_tracker_client/src/route/ui/route_place_selector.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_tracker_client/app.dart';
+import 'package:toast/toast.dart';
 
 class AuthenticationLogin extends StatefulWidget {
   final AuthenticationBloc _authenticationBloc;
@@ -94,6 +95,11 @@ class _AuthenticationLoginState extends State<AuthenticationLogin> {
                   if (isValidEmail && isValidPassword) {
                     UserResponse user = await widget._authenticationBloc
                         .getUser(_usernameController.text);
+                    if(user == null){
+                      Toast.show("Invalid email id", context,
+                          duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+                      return;
+                    }
                     print(json.encode(user.toJson()));
                     App.routeId = user.routeId;
                     App.user = user;

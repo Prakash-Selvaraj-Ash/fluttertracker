@@ -17,18 +17,25 @@ class AuthenticationClient extends WebClientBase {
     Map<String, dynamic> jsonBody = createUser.toJson();
     Map<String, String> _headers = Map<String, String>();
     _headers['Content-Type'] = 'application/json; charset=utf-8';
-    Response response = await this
-        ._httpClient
-        .post("${baseUrl}/${routePrefix}", body: json.encode(jsonBody), headers: _headers);
-    dynamic createdStudent = json.decode(response.body);
-    return UserResponse.fromJson(createdStudent);
+    Response response = await this._httpClient.post("${baseUrl}/${routePrefix}",
+        body: json.encode(jsonBody), headers: _headers);
+    if (response.statusCode == 200) {
+      dynamic createdStudent = json.decode(response.body);
+      return UserResponse.fromJson(createdStudent);
+    } else {
+      return null;
+    }
   }
 
   Future<UserResponse> readUser(String name) async {
     Response response = await this
         ._httpClient
         .get("${baseUrl}/${routePrefix}/byname?name=${name}");
-    dynamic student = json.decode(response.body);
-    return UserResponse.fromJson(student);
+    if (response.statusCode == 200) {
+      dynamic student = json.decode(response.body);
+      return UserResponse.fromJson(student);
+    } else {
+      return null;
+    }
   }
 }

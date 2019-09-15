@@ -140,16 +140,22 @@ class _AuthenticationSignUpState extends State<AuthenticationSignUp> {
                           duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
                       return;
                     }
-                    UserResponse user = await widget._authenticationBloc
-                        .createUser(CreateUser(
-                            name: _emailController.text,
-                            placeId: _placeResponse.id,
-                            routeId: _routeResponse.id,
-                            fcmId: fcmToken));
-                    App.user = user;
-                    Navigator.pushNamedAndRemoveUntil(
-                        context, 'user/track', (p) => false,
-                        arguments: user);
+                    try {
+                      UserResponse user = await widget._authenticationBloc
+                          .createUser(CreateUser(
+                              name: _emailController.text,
+                              placeId: _placeResponse.id,
+                              routeId: _routeResponse.id,
+                              fcmId: fcmToken));
+                      App.user = user;
+                      Navigator.pushNamedAndRemoveUntil(
+                          context, 'user/track', (p) => false,
+                          arguments: user);
+                    } on Exception {
+                      Toast.show("please check your network connection", context,
+                          duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+                      return;
+                    }
                   }
                 },
                 child: Text(

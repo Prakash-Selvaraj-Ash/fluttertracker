@@ -373,10 +373,42 @@ class _BusTrackState extends State<BusTrack> {
                 widget._isDriver ? updateToNextPoint : null,
                 widget._isDriver ? updateToNextPlace : null,
                 widget._showFinised,
+                calculateDotPosition(),
               ),
             ],
           ),
         ));
+  }
+
+  double calculateDotPosition() {
+    double position = 0;
+    int srcPointIndex = 0;
+    int destPointIndex = 0;
+    int currentIndex = 0;
+    if(widget._routeResponse == null || widget._routeResponse.places == null || widget._routeResponse.places.length == 0){
+      return 0;
+    }
+    if(widget._lastDestinationIndex < widget._routeResponse.places.length - 1) {
+      if (widget._lastDestinationIndex != -1) {
+        srcPointIndex = getNearPointIndex(LatLng(
+            widget._routeResponse.places[widget._lastDestinationIndex]
+                .lattitude,
+            widget._routeResponse.places[widget._lastDestinationIndex]
+                .longitude));
+      }
+      if (widget._currentLatLng != null) {
+        currentIndex = getNearPointIndex(widget._currentLatLng);
+      }
+      destPointIndex = getNearPointIndex(LatLng(
+          widget._routeResponse.places[widget._lastDestinationIndex + 1]
+              .lattitude,
+          widget._routeResponse.places[widget._lastDestinationIndex + 1]
+              .longitude));
+      position =
+          (currentIndex - srcPointIndex) / (destPointIndex - srcPointIndex) *
+              100;
+      return position;
+    }
   }
 
   void initBusIcon() async {
