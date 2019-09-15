@@ -5,14 +5,15 @@ typedef MethodInvacationFunc = void Function(List<Object> arguments);
 
 class SignalrServices extends WebClientBase {
   final routePrefix = "broadCast";
+//  bool isInitilized = false;
   HubConnection _hubConnection;
-  
 
   initialize(MethodInvacationFunc onBroadCast) {
     final url = "${baseUrl}/${routePrefix}";
     _hubConnection = HubConnectionBuilder().withUrl(url).build();
     _hubConnection.onclose((error) => print("Connection Closed"));
     _hubConnection.on('BroadCastTrack', onBroadCast);
+//    isInitilized = true;
   }
 
   start(String userId) async {
@@ -21,9 +22,12 @@ class SignalrServices extends WebClientBase {
     }
 
     await _hubConnection.start();
-    await _hubConnection.invoke('MapUserAndConnection', args:<Object>[userId]);
+    await _hubConnection.invoke('MapUserAndConnection', args: <Object>[userId]);
   }
-  close(){
-    _hubConnection.stop();
+
+  close() {
+    if (_hubConnection != null) {
+      _hubConnection.stop();
+    }
   }
 }

@@ -290,13 +290,15 @@ class _BusTrackState extends State<BusTrack> {
   }
 
   void initSignalRListener() {
-//    widget._signalrServices.initialize(_handleBroadCastMessage);
-//    widget._signalrServices.start(App.user.id);
-    if (widget._timer == null) {
-      const timePeriod = const Duration(seconds: 7);
-      widget._timer =
-          new Timer.periodic(timePeriod, (Timer t) => initializeTrackData());
-    }
+//    if(!widget._signalrServices.isInitilized) {
+      widget._signalrServices.initialize(_handleBroadCastMessage);
+      widget._signalrServices.start(App.user.id);
+//    }
+//    if (widget._timer == null) {
+//      const timePeriod = const Duration(seconds: 7);
+//      widget._timer =
+//          new Timer.periodic(timePeriod, (Timer t) => initializeTrackData());
+//    }
   }
 
   @override
@@ -304,6 +306,9 @@ class _BusTrackState extends State<BusTrack> {
     if (widget._timer != null) {
       widget._timer.cancel();
       widget._timer = null;
+    }
+    if (widget._signalrServices != null) {
+      widget._signalrServices.close();
     }
     super.dispose();
   }
@@ -318,9 +323,9 @@ class _BusTrackState extends State<BusTrack> {
         response.currentLocationCoordinate.lattitude;
     widget._trackData.currentLongitude =
         response.currentLocationCoordinate.longitude;
-    parseTrackData();
     print("live response: ");
     print(response);
+    onTrackResponseReceived(widget._trackData);
   }
 
   RouteResponse get listRes {
@@ -385,14 +390,17 @@ class _BusTrackState extends State<BusTrack> {
     int srcPointIndex = 0;
     int destPointIndex = 0;
     int currentIndex = 0;
-    if(widget._routeResponse == null || widget._routeResponse.places == null || widget._routeResponse.places.length == 0){
+    if (widget._routeResponse == null ||
+        widget._routeResponse.places == null ||
+        widget._routeResponse.places.length == 0) {
       return position;
     }
-    if(widget._lastDestinationIndex < widget._routeResponse.places.length - 1) {
+    if (widget._lastDestinationIndex <
+        widget._routeResponse.places.length - 1) {
       if (widget._lastDestinationIndex != -1) {
         srcPointIndex = getNearPointIndex(LatLng(
-            widget._routeResponse.places[widget._lastDestinationIndex]
-                .lattitude,
+            widget
+                ._routeResponse.places[widget._lastDestinationIndex].lattitude,
             widget._routeResponse.places[widget._lastDestinationIndex]
                 .longitude));
       }
@@ -404,9 +412,9 @@ class _BusTrackState extends State<BusTrack> {
               .lattitude,
           widget._routeResponse.places[widget._lastDestinationIndex + 1]
               .longitude));
-      position =
-          (currentIndex - srcPointIndex) / (destPointIndex - srcPointIndex) *
-              100;
+      position = (currentIndex - srcPointIndex) /
+          (destPointIndex - srcPointIndex) *
+          100;
     }
     return position;
   }
