@@ -53,6 +53,7 @@ class _AuthenticationLoginState extends State<AuthenticationLogin> {
                 style: Theme.of(context).textTheme.subtitle,
                 autofocus: false,
                 controller: _usernameController,
+                maxLength: 40,
                 decoration: InputDecoration(
                   labelText: 'Email Id',
                   errorText: _validEmail ? null : 'Invalid Email Id',

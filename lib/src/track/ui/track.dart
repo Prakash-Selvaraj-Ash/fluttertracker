@@ -386,7 +386,7 @@ class _BusTrackState extends State<BusTrack> {
     int destPointIndex = 0;
     int currentIndex = 0;
     if(widget._routeResponse == null || widget._routeResponse.places == null || widget._routeResponse.places.length == 0){
-      return 0;
+      return position;
     }
     if(widget._lastDestinationIndex < widget._routeResponse.places.length - 1) {
       if (widget._lastDestinationIndex != -1) {
@@ -407,8 +407,8 @@ class _BusTrackState extends State<BusTrack> {
       position =
           (currentIndex - srcPointIndex) / (destPointIndex - srcPointIndex) *
               100;
-      return position;
     }
+    return position;
   }
 
   void initBusIcon() async {

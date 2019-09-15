@@ -67,6 +67,7 @@ class _AuthenticationSignUpState extends State<AuthenticationSignUp> {
                 style: Theme.of(context).textTheme.subtitle,
                 autofocus: false,
                 controller: _nameController,
+                maxLength: 30,
                 decoration: InputDecoration(
                     labelText: 'Name',
                     errorText: _validName
@@ -81,6 +82,7 @@ class _AuthenticationSignUpState extends State<AuthenticationSignUp> {
                 style: Theme.of(context).textTheme.subtitle,
                 autofocus: false,
                 controller: _phoneController,
+                maxLength: 10,
                 decoration: InputDecoration(
                     labelText: 'Mobile number',
                     errorText: _validMobile
@@ -95,6 +97,7 @@ class _AuthenticationSignUpState extends State<AuthenticationSignUp> {
                 style: Theme.of(context).textTheme.subtitle,
                 autofocus: false,
                 controller: _emailController,
+                maxLength: 40,
                 decoration: InputDecoration(
                     labelText: 'email id',
                     errorText: _validEmail ? null : 'Invalid Email Id'),
