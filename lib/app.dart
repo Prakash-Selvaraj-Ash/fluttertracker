@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:convert';
 
 import 'package:bus_tracker_client/src/authentication/blocs/authentication_bloc.dart';
 import 'package:bus_tracker_client/src/authentication/models/user_response.dart';
@@ -15,19 +16,80 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:inject/inject.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class App extends StatelessWidget {
   final RouteBloc routeBloc;
   final TrackBloc trackBloc;
+  final Future<SharedPreferences> _pref;
+  static SharedPreferences sharedPref;
   final AuthenticationBloc authenticationBloc;
   final FirebaseMessaging _firebaseMessaging;
   final SignalrServices signalrServices;
-  static UserResponse user;
-  static List<RouteResponse> routeResonse;
-  static String routeId;
   static final HashMap<String, String> BUS_IDS = HashMap();
-  static String selectedBusId;
-  static String fcmToken;
+
+  static UserResponse get user {
+    String jsonString = sharedPref?.getString('user');
+    if (jsonString == null || jsonString.isEmpty) {
+      return null;
+    } else {
+      Map<String, dynamic> map = json.decode(jsonString);
+      if (map == null || map.isEmpty) {
+        return null;
+      } else {
+        return UserResponse.fromJson(map);
+      }
+    }
+  }
+
+  static List<RouteResponse> get routeResponse {
+    String jsonString = sharedPref?.getString('routeResonse');
+    if (jsonString == null || jsonString.isEmpty) {
+      return null;
+    } else {
+      List<dynamic> routes = json.decode(jsonString);
+      if (routes == null) {
+        return null;
+      } else {
+        return routes.map((route) => RouteResponse.fromJson(route)).toList();
+      }
+    }
+  }
+
+  static String get routeId {
+    return sharedPref?.getString('routeId');
+  }
+
+  static String get selectedBusId {
+    return sharedPref?.getString('selectedBusId');
+  }
+
+  static String get fcmToken {
+    return sharedPref?.getString('fcmToken');
+  }
+
+  static void set fcmToken(String value) {
+    sharedPref?.setString('fcmToken', value);
+  }
+
+  static void set selectedBusId(String value) {
+    sharedPref?.setString('selectedBusId', value);
+  }
+
+  static void set routeId(String value) {
+    sharedPref?.setString('routeId', value);
+  }
+
+  static void saveRouteResonse(String value) {
+    sharedPref?.setString('routeResonse', value);
+  }
+
+  static void set user(UserResponse value) {
+    sharedPref?.setString('user', json.encode(value));
+  }
+
+  final GlobalKey<NavigatorState> navigatorKey =
+      new GlobalKey<NavigatorState>();
 
   void firebaseCloudMessagingListeners() {
     _firebaseMessaging.getToken().then((token) {
@@ -41,28 +103,38 @@ class App extends StatelessWidget {
         print(message['notification']['title']);
         print(message['notification']['body']);
 
-        FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+        FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+            new FlutterLocalNotificationsPlugin();
 // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
         var initializationSettingsAndroid =
-        new AndroidInitializationSettings('ic_launcher');
+            new AndroidInitializationSettings('ic_launcher');
         var onDidReceiveLocalNotification;
         var initializationSettingsIOS = new IOSInitializationSettings(
             onDidReceiveLocalNotification: onDidReceiveLocalNotification);
         var initializationSettings = new InitializationSettings(
             initializationSettingsAndroid, initializationSettingsIOS);
         flutterLocalNotificationsPlugin.initialize(initializationSettings,
-            onSelectNotification: null);
+            onSelectNotification: _onSelectNotification);
 
         var androidPlatformChannelSpecifics = AndroidNotificationDetails(
             'notification_channel', 'notification_channel_name', 'test',
-            importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
+            importance: Importance.Max,
+            priority: Priority.High,
+            ticker: 'ticker');
         var iOSPlatformChannelSpecifics = IOSNotificationDetails();
         var platformChannelSpecifics = NotificationDetails(
             androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
         await flutterLocalNotificationsPlugin.show(
-            0, message['notification']['title'], message['notification']['body'], platformChannelSpecifics,
+            0,
+            message['notification']['title'],
+            message['notification']['body'],
+            platformChannelSpecifics,
             payload: 'item x');
 
+        navigatorKey.currentState.pushNamedAndRemoveUntil(
+          '/user/track',
+          (p) => false,
+        );
       },
       onResume: (Map<String, dynamic> message) async {
         print('on message $message');
@@ -78,13 +150,16 @@ class App extends StatelessWidget {
       },
     );
   }
-  Future onSelectNotification(String payload) async {
-    if (payload != null) {
-      debugPrint('notification payload: ' + payload);
-    }
+
+  Future _onSelectNotification(String payload) async {
+    print('on payload $payload');
+    navigatorKey.currentState.pushNamedAndRemoveUntil(
+      '/user/track',
+      (p) => false,
+    );
   }
 
-  void handlingNotification(Map<String,String> message){
+  void handlingNotification(Map<String, String> message) {
     print('on message $message');
     print(message['title']);
     print(message['body']);
@@ -92,15 +167,17 @@ class App extends StatelessWidget {
 
   @provide
   App(this.routeBloc, this.trackBloc, this.authenticationBloc,
-      this._firebaseMessaging, this.signalrServices)
+      this._firebaseMessaging, this.signalrServices, this._pref)
       : super();
 
   @override
   Widget build(BuildContext context) {
+    initPreferences();
     initHashMap();
     firebaseCloudMessagingListeners();
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
       theme: ThemeData(
           fontFamily: 'OpenSans',
           accentColor: Colors.blue,
@@ -142,15 +219,19 @@ class App extends StatelessWidget {
                 builder: (_) => AuthenticationLogin(authenticationBloc));
           case "user/track":
             return MaterialPageRoute(
-                builder: (_) => BusTrack(routeId, routeBloc, trackBloc,
-                    signalrServices, false));
+                builder: (_) => BusTrack(
+                    routeId, routeBloc, trackBloc, signalrServices, false));
           default:
             return MaterialPageRoute(
                 builder: (_) => AuthenticationHome(routeBloc));
         }
       },
       routes: {
-        '/': (context) => AuthenticationHome(routeBloc),
+        '/': (context) => user != null
+            ? BusTrack(routeId, routeBloc, trackBloc, signalrServices, false)
+            : routeId != null
+                ? BusTrack(routeId, routeBloc, trackBloc, signalrServices, true)
+                : AuthenticationHome(routeBloc),
         '/home': (context) => AuthenticationHome(routeBloc),
         '/driver': (context) => DriverStartBus(routeBloc),
         '/driver/track': (context) =>
@@ -169,5 +250,17 @@ class App extends StatelessWidget {
         () => "adea5d3f-a898-4119-9325-a7982517b335");
     BUS_IDS.putIfAbsent("6047eb09-965a-4a61-9bbc-b8f3817024f0",
         () => "5f98a463-722f-4e7c-9d32-5fe4993926a8");
+  }
+
+  void initPreferences() async {
+//    sharedPref = await _pref;
+  }
+
+  static void clearPref() {
+    print('preferrence cleared');
+    App.saveRouteResonse(null);
+    App.user = null;
+    App.routeId = null;
+    App.selectedBusId = null;
   }
 }

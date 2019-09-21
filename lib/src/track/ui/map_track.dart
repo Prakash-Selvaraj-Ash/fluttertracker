@@ -49,8 +49,11 @@ class MapTrack extends StatefulWidget {
   _MapTrackState createState() => _MapTrackState();
 }
 
-class _MapTrackState extends State<MapTrack> {
+class _MapTrackState extends State<MapTrack> with AutomaticKeepAliveClientMixin{
 
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {

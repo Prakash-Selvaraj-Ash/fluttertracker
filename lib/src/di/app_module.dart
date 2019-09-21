@@ -15,6 +15,7 @@ import 'package:bus_tracker_client/src/track/webclient/track_client.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:inject/inject.dart';
 import 'package:http/http.dart' show Client;
+import 'package:shared_preferences/shared_preferences.dart';
 
 @module
 class AppModule {
@@ -74,5 +75,8 @@ class AppModule {
   @provide
   BlocBase trackBloc() => TrackBloc(trackRepository());
 
+  @provide
+  @singleton
+  Future<SharedPreferences> sharedPreferences() async => await SharedPreferences.getInstance();
 
 }

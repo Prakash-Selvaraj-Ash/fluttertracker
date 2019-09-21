@@ -30,44 +30,47 @@ class _DriverStartBusState extends State<DriverStartBus> {
         appBar: AppBar(title: Text('Select Your Route')),
         body: Center(
             child: Container(
-              margin: EdgeInsets.all(10),
-              padding: EdgeInsets.all(10),
-              child: Column(
-                children: <Widget>[
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Text(
-                      'eMTe School',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headline.copyWith(fontFamily: 'Precious')
-                  ),
-                  SizedBox(
-                    height: 30,
-                  ),
-                  RoutePlaceSelector(widget._routeBloc, (route, place) {
-                    App.routeId = route.id;
-                  },false),
-                  SizedBox(
-                    height: 70,
-                  ),
-                  RaisedButton(
-                    onPressed: () async {
-                      if(App.routeId == null){
-                        Toast.show("Please select your route", context,
-                            duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
-                      }else {
-                        await Navigator.pushNamed(context, '/driver/track',);
-                      }
-                    },
-                    child: Text(
-                      'Start Bus',
-                      style: Theme.of(context).textTheme.button,
-                    ),
-                  )
-                ],
+          margin: EdgeInsets.all(10),
+          padding: EdgeInsets.all(10),
+          child: Column(
+            children: <Widget>[
+              SizedBox(
+                height: 20,
               ),
-            )));
+              Text('eMTe School',
+                  style: Theme.of(context)
+                      .textTheme
+                      .headline
+                      .copyWith(fontFamily: 'Precious')),
+              SizedBox(
+                height: 30,
+              ),
+              RoutePlaceSelector(widget._routeBloc, (route, place) {
+                App.routeId = route.id;
+              }, false),
+              SizedBox(
+                height: 70,
+              ),
+              RaisedButton(
+                onPressed: () async {
+                  if (App.routeId == null) {
+                    Toast.show("Please select your route", context,
+                        duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+                  } else {
+                    await Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/driver/track',
+                      (p) => false,
+                    );
+                  }
+                },
+                child: Text(
+                  'Start Bus',
+                  style: Theme.of(context).textTheme.button,
+                ),
+              )
+            ],
+          ),
+        )));
   }
 }

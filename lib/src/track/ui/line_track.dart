@@ -7,7 +7,7 @@ import './dot_widget.dart';
 
 class LineTrack extends StatelessWidget {
   final RouteResponse _routeResponse;
-  double _blinkingDotPosition = 28;
+  double _blinkingDotPosition = 0;
   var _trackingText = "Bus Started";
   final LatLng _currentLatLng;
   final BusTrackResponseDto _trackData;
@@ -44,9 +44,9 @@ class LineTrack extends StatelessWidget {
             _initialLatLng.latitude.toStringAsFixed(4) ||
         _currentLatLng.longitude.toStringAsFixed(4) !=
             _initialLatLng.longitude.toStringAsFixed(4)) {
-      _blinkingDotPosition = 28 + _calculateDotPostion;
+      _blinkingDotPosition = _calculateDotPostion;
     } else {
-      _blinkingDotPosition = 28;
+      _blinkingDotPosition = 0;
     }
 
     for (int i = 0; i < _routeResponse.places.length; i++) {
@@ -57,14 +57,15 @@ class LineTrack extends StatelessWidget {
               _routeResponse.places[i].lattitude.toStringAsFixed(4) &&
           _currentLatLng.longitude.toStringAsFixed(4) ==
               _routeResponse.places[i].longitude.toStringAsFixed(4)) {
-        _blinkingDotPosition = (((i + 1) * 100) + 15).toDouble();
+        _blinkingDotPosition = (((i + 1) * 100)).toDouble();
       } else if (_trackData != null &&
           _trackData.lastDestination != null &&
           _trackData.lastDestination.id == _routeResponse.places[i].id) {
         if (i == _routeResponse.places.length - 1) {
-          _blinkingDotPosition = (((i + 1) * 100) + 15).toDouble();
+          _blinkingDotPosition = (((i + 1) * 100)).toDouble();
         } else {
-          _blinkingDotPosition = (((i + 1) * 100) + 15).toDouble() + _calculateDotPostion;
+          _blinkingDotPosition =
+              (((i + 1) * 100)).toDouble() + _calculateDotPostion;
         }
       }
     }
@@ -79,9 +80,9 @@ class LineTrack extends StatelessWidget {
     if (_currentLatLng != null && _routeResponse != null) {
       calculateBlinkingDotPostion();
     }
-    print(_routeResponse);
-    print(_currentLatLng);
-    print(_trackData);
+//    print(_routeResponse);
+//    print(_currentLatLng);
+//    print(_trackData);
 
     String text = '';
 
@@ -109,7 +110,7 @@ class LineTrack extends StatelessWidget {
                 ),
               )
             : Container(
-                margin: EdgeInsets.symmetric(horizontal: 20, vertical: 70),
+                margin: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -172,87 +173,95 @@ class LineTrack extends StatelessWidget {
                             ],
                           ),
                     SizedBox(
-                      height: 40,
+                      height: 20,
                     ),
                     Expanded(
                       child: SingleChildScrollView(
                         controller: _scrollController,
-                        scrollDirection: Axis.horizontal,
-                        child: Center(
-                          child: Stack(
-                            children: <Widget>[
-                              Container(
-                                margin: EdgeInsets.fromLTRB(50, 8, 50, 0),
+                        scrollDirection: Axis.vertical,
+//                        child: Center(
+                        child: Stack(
+                          children: <Widget>[
+                            Center(
+                              child: Container(
+                                margin: EdgeInsets.fromLTRB(10, 1, 10, 0),
                                 child: Container(
-                                  height: 2,
-                                  width:
-                                      _routeResponse.places.length * 100.0 - 15,
+                                  width: 2,
+                                  height:
+                                      _routeResponse.places.length * 100.0,
                                   color: Theme.of(context).accentColor,
                                 ),
                               ),
-                              Row(
+                            ),
+                            Container(
+                              margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                              child: Column(
                                 children: <Widget>[
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: <Widget>[
-                                      CircleAvatar(
-                                        radius: 10,
-                                        backgroundColor: Colors.grey,
-                                        child: SizedBox(),
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      Container(
-                                        margin:
-                                            EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                        child: Text(
-                                          "Started",
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .subtitle,
+                                  Container(
+                                    height: 100,
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        Expanded(child: SizedBox()),
+                                        CircleAvatar(
+                                            radius: 10,
+                                            backgroundColor: Colors.grey,
+                                            child: SizedBox(),
+                                          ),
+                                        Expanded(
+                                          child: Container(
+                                            margin:
+                                                EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                            child: Text(
+                                              "Started",
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .subtitle,
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                  ...(_routeResponse.places as List)
-                                      .map((place) {
-                                    print(_etaForPlaces[place.id]);
+                                  ...(_routeResponse.places as List).map((place) {
+//                                    print(_etaForPlaces[place.id]);
                                     String text = (place as PlaceResponse).name;
+                                    String etaText = ' ETA : - ';
                                     if (_etaForPlaces[place.id] != null) {
-                                      text +=
+                                      etaText =
                                           ' ETA : ' + _etaForPlaces[place.id];
-                                    } else {
-                                      text += ' ETA : - ';
                                     }
-                                    return DotWidget(text);
+                                    return DotWidget(text, etaText);
                                   }).toList()
                                 ],
                               ),
-                              Container(
+                            ),
+                            Center(
+                              child: Container(
                                 margin: EdgeInsets.fromLTRB(
-                                    _blinkingDotPosition, 0, 0, 0),
+                                    0, _blinkingDotPosition, 0, 0),
                                 child: CircleAvatar(
                                   radius: 10,
                                   backgroundColor: Colors.purple,
                                   child: SizedBox(),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
+//                          ),
                         ),
                       ),
                     ),
                     SizedBox(
-                      height: 20,
+                      height: 10,
                     ),
                     Text(
                       _trackingText,
                       style: Theme.of(context).textTheme.title,
                     ),
                     SizedBox(
-                      height: 30,
+                      height: 10,
                     ),
                   ],
                 ),

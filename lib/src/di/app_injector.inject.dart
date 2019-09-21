@@ -22,6 +22,8 @@ class AppInjector$Injector implements _i1.AppInjector {
 
   _i5.AuthenticationRepository _singletonAuthenticationRepository;
 
+  _i6.Future _singletonFuture;
+
   static _i6.Future<_i1.AppInjector> create(_i2.AppModule appModule) async {
     final injector = AppInjector$Injector._(appModule);
 
@@ -33,7 +35,8 @@ class AppInjector$Injector implements _i1.AppInjector {
       _createTrackBloc(),
       _createAuthenticationBloc(),
       _createFirebaseMessaging(),
-      _createSignalrServices());
+      _createSignalrServices(),
+      _createFuture());
   _i8.RouteBloc _createRouteBloc() => _i8.RouteBloc(_createRouteRepository());
   _i3.RouteRepository _createRouteRepository() =>
       _singletonRouteRepository ??= _appModule.routeRepository();
@@ -48,6 +51,8 @@ class AppInjector$Injector implements _i1.AppInjector {
   _i11.FirebaseMessaging _createFirebaseMessaging() =>
       _appModule.firebaseMessaging();
   _i12.SignalrServices _createSignalrServices() => _appModule.signalRService();
+  _i6.Future _createFuture() =>
+      _singletonFuture ??= _appModule.sharedPreferences();
   @override
   _i7.App get app => _createApp();
 }

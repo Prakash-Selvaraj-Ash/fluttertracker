@@ -291,8 +291,8 @@ class _BusTrackState extends State<BusTrack> {
 
   void initSignalRListener() {
 //    if(!widget._signalrServices.isInitilized) {
-      widget._signalrServices.initialize(_handleBroadCastMessage);
-      widget._signalrServices.start(App.user.id);
+    widget._signalrServices.initialize(_handleBroadCastMessage);
+    widget._signalrServices.start(App.user.id);
 //    }
 //    if (widget._timer == null) {
 //      const timePeriod = const Duration(seconds: 7);
@@ -303,12 +303,17 @@ class _BusTrackState extends State<BusTrack> {
 
   @override
   void dispose() {
+    print('dispose called');
     if (widget._timer != null) {
       widget._timer.cancel();
       widget._timer = null;
     }
     if (widget._signalrServices != null) {
       widget._signalrServices.close();
+    }
+    if (widget._isDriver && widget._showFinised) {
+      print('clearPref called');
+      App.clearPref();
     }
     super.dispose();
   }
@@ -330,8 +335,8 @@ class _BusTrackState extends State<BusTrack> {
 
   RouteResponse get listRes {
     RouteResponse response;
-    if (App.routeResonse != null) {
-      for (final routeResponse in App.routeResonse) {
+    if (App.routeResponse != null) {
+      for (final routeResponse in App.routeResponse) {
         if (routeResponse.id == widget._routeId) {
           response = routeResponse;
         }
@@ -343,46 +348,50 @@ class _BusTrackState extends State<BusTrack> {
   @override
   Widget build(BuildContext context) {
     initBusIcon();
-    return DefaultTabController(
-        length: 2,
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text('Bus Tracking'),
-            bottom: TabBar(
-              tabs: [
-                Icon(Icons.map),
-                Icon(Icons.linear_scale),
+    return new WillPopScope(
+      onWillPop: _onWillPop,
+      child: DefaultTabController(
+          length: 2,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text('Bus Tracking'),
+              bottom: TabBar(
+                tabs: [
+                  Icon(Icons.linear_scale),
+                  Icon(Icons.map),
+                ],
+              ),
+            ),
+            body: TabBarView(
+              physics: NeverScrollableScrollPhysics(),
+              children: [
+                LineTrack(
+                  widget._routeResponse,
+                  widget._currentLatLng,
+                  widget._trackData,
+                  widget._etaForPlaces,
+                  widget._showNotStarted,
+                  widget._isDriver ? updateToNextPoint : null,
+                  widget._isDriver ? updateToNextPlace : null,
+                  widget._showFinised,
+                  calculateDotPosition(),
+                ),
+                MapTrack(
+                  widget._routeResponse,
+                  widget._currentLatLng,
+                  widget._trackData,
+                  widget._markersList,
+                  widget._showNotStarted,
+                  widget._isDriver ? updateToNextPoint : null,
+                  widget._isDriver ? updateToNextPlace : null,
+                  widget._polylines,
+                  widget._showFinised,
+                ),
+
               ],
             ),
-          ),
-          body: TabBarView(
-            physics: NeverScrollableScrollPhysics(),
-            children: [
-              MapTrack(
-                widget._routeResponse,
-                widget._currentLatLng,
-                widget._trackData,
-                widget._markersList,
-                widget._showNotStarted,
-                widget._isDriver ? updateToNextPoint : null,
-                widget._isDriver ? updateToNextPlace : null,
-                widget._polylines,
-                widget._showFinised,
-              ),
-              LineTrack(
-                widget._routeResponse,
-                widget._currentLatLng,
-                widget._trackData,
-                widget._etaForPlaces,
-                widget._showNotStarted,
-                widget._isDriver ? updateToNextPoint : null,
-                widget._isDriver ? updateToNextPlace : null,
-                widget._showFinised,
-                calculateDotPosition(),
-              ),
-            ],
-          ),
-        ));
+          )),
+    );
   }
 
   double calculateDotPosition() {
@@ -543,5 +552,10 @@ class _BusTrackState extends State<BusTrack> {
       poly.add(p);
     }
     return poly;
+  }
+
+  Future<bool> _onWillPop() async {
+    await dispose();
+    return true;
   }
 }

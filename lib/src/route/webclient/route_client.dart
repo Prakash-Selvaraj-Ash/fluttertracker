@@ -4,6 +4,9 @@ import 'package:bus_tracker_client/src/track/models/bus_track_response_dto.dart'
 import 'package:bus_tracker_client/src/webclient/web_client_base.dart';
 import 'package:http/http.dart';
 import 'package:inject/inject.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../app.dart';
 
 class RouteClient extends WebClientBase {
   Client _httpClient;
@@ -14,7 +17,9 @@ class RouteClient extends WebClientBase {
 
   Future<List<RouteResponse>> getAllRoutes() async {
     Response response = await this._httpClient.get("${baseUrl}/${routePrefix}");
-    List<dynamic> routes = json.decode(response.body);
+    String responseString = response.body;
+    App.saveRouteResonse(responseString);
+    List<dynamic> routes = json.decode(responseString);
     return routes.map((route) => RouteResponse.fromJson(route)).toList();
   }
 

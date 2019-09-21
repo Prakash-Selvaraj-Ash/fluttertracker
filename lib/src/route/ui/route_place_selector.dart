@@ -42,11 +42,11 @@ class _RoutePlaceSelectorState extends State<RoutePlaceSelector> {
   void initializeRoutes() async {
     var routes;
 
-    if (App.routeResonse == null) {
+    if (App.routeResponse == null) {
       routes = await widget._routeBloc.getAllRoutes();
-      App.routeResonse = routes;
+//      App.routeResponse = routes;
     } else {
-      routes = App.routeResonse;
+      routes = App.routeResponse;
     }
 
     setState(() {

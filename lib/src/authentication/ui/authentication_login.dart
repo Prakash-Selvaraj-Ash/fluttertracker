@@ -104,7 +104,7 @@ class _AuthenticationLoginState extends State<AuthenticationLogin> {
                     print(json.encode(user.toJson()));
                     App.routeId = user.routeId;
                     App.user = user;
-                    print(App.routeResonse);
+                    print(App.routeResponse);
                     Navigator.pushNamedAndRemoveUntil(
                         context, 'user/track', (p) => false,
                         arguments: user);

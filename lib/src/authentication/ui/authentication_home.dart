@@ -35,17 +35,17 @@ class _AuthenticationHomeState extends State<AuthenticationHome> {
   void initializeRoutes() async {
     var routes;
 
-    if(App.routeResonse == null) {
+    if(App.routeResponse == null) {
       routes = await widget._routeBloc.getAllRoutes();
-      App.routeResonse = routes;
+//      App.routeResponse = routes;
     }else{
-      routes = App.routeResonse;
+      routes = App.routeResponse;
     }
 
     setState(() {
       widget._routeResponses = routes;
       if(widget._routeResponses != null){
-        App.routeResonse = routes;
+//        App.routeResponse = routes;
       }
     });
   }
