@@ -9,7 +9,10 @@ class AuthenticationHome extends StatefulWidget {
   final RouteBloc _routeBloc;
 
   AuthenticationHome(this._routeBloc);
-   var _routeResponses;
+
+  var _routeResponses;
+
+//  var routes;
 
   @override
   _AuthenticationHomeState createState() => _AuthenticationHomeState();
@@ -33,21 +36,36 @@ class _AuthenticationHomeState extends State<AuthenticationHome> {
   }*/
 
   void initializeRoutes() async {
-    var routes;
-
-    if(App.routeResponse == null) {
-      routes = await widget._routeBloc.getAllRoutes();
+//    var routes;
+//    if(widget._routeResponses == null) {
+    if (App.routeResponse == null) {
+      var routes = await widget._routeBloc.getAllRoutes();
+      if (routes != null) {
+        setState(() {
+          widget._routeResponses = routes;
+        });
+      } else {
+        initializeRoutes();
+      }
+      print("init state");
 //      App.routeResponse = routes;
-    }else{
-      routes = App.routeResponse;
+    } else {
+      print("init state old");
+      setState(() {
+        widget._routeResponses = App.routeResponse;
+      });
     }
 
-    setState(() {
-      widget._routeResponses = routes;
-      if(widget._routeResponses != null){
+//    if (routes != null) {
+//      setState(() {
+//        widget._routeResponses = App.routeResponse;
+//      });
+//    }
+//      if(widget._routeResponses != null){
 //        App.routeResponse = routes;
-      }
-    });
+//      }
+
+//    }
   }
 
   void _changeScreen(BuildContext context, bool isDriver) {
@@ -58,11 +76,13 @@ class _AuthenticationHomeState extends State<AuthenticationHome> {
 
   @override
   Widget build(BuildContext context) {
+    print(widget._routeResponses);
+    print(App.routeResponse);
     return Scaffold(
       appBar: AppBar(
         title: Text('Select Your Role'),
       ),
-      body: widget._routeResponses == null
+      body: App.routeResponse == null
           ? Center(
               child: CircularProgressIndicator(
                 value: 60,
@@ -92,9 +112,7 @@ class _AuthenticationHomeState extends State<AuthenticationHome> {
                       color: Theme.of(context).secondaryHeaderColor,
                       child: Text(
                         'User',
-                        style: Theme.of(context)
-                            .textTheme
-                            .button,
+                        style: Theme.of(context).textTheme.button,
                       ),
                     ),
                   ],

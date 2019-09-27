@@ -221,6 +221,9 @@ class App extends StatelessWidget {
           accentColor: accentColor,
           secondaryHeaderColor: accentColor,
           primarySwatch: primaryColor,
+          inputDecorationTheme: new InputDecorationTheme(
+            labelStyle: new TextStyle(color: Colors.black),
+          ),
           textTheme: ThemeData.light().textTheme.copyWith(
 
                 title: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
