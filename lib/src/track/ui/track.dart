@@ -355,10 +355,17 @@ class _BusTrackState extends State<BusTrack> {
           child: Scaffold(
             appBar: AppBar(
               title: Text('Bus Tracking'),
+              actions: <Widget>[
+                IconButton(
+                    icon: Icon(Icons.power_settings_new),
+                    onPressed: () {
+                      showLogoutDialog(context);
+                    })
+              ],
               bottom: TabBar(
                 tabs: [
-                  Icon(Icons.linear_scale),
-                  Icon(Icons.map),
+                  Icon(Icons.linear_scale, color: Theme.of(context).appBarTheme.iconTheme.color,),
+                  Icon(Icons.map, color: Theme.of(context).appBarTheme.iconTheme.color,),
                 ],
               ),
             ),
@@ -387,7 +394,6 @@ class _BusTrackState extends State<BusTrack> {
                   widget._polylines,
                   widget._showFinised,
                 ),
-
               ],
             ),
           )),
@@ -518,7 +524,7 @@ class _BusTrackState extends State<BusTrack> {
           visible: true,
           points: widget.latlng,
           width: 3,
-          color: Colors.black,
+          color: Colors.blue,
         ));
       }
     }
@@ -557,5 +563,40 @@ class _BusTrackState extends State<BusTrack> {
   Future<bool> _onWillPop() async {
     await dispose();
     return true;
+  }
+
+  void showLogoutDialog(BuildContext context) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          // return object of type Dialog
+          return AlertDialog(
+            title: new Text("Logout"),
+            content: new Text("Are you sure want to logout?"),
+            actions: <Widget>[
+              // usually buttons at the bottom of the dialog
+              new FlatButton(
+                child: new Text("YES"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  dispose();
+                  App.clearPref();
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/home',
+                        (p) => false,
+                  );
+                },
+              ),
+              new FlatButton(
+                child: new Text("NO"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
   }
 }

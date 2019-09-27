@@ -70,19 +70,19 @@ flutter:
   fonts:
     - family: Precious
       fonts:
-        - asset: assets/fonts/Precious.ttf
+        - asset: assets/fonts/primary_nova.ttf
     - family: Pacifico
       fonts:
-        - asset: assets/fonts/Pacifico.ttf
+        - asset: assets/fonts/primary_nova.ttf
     - family: OpenSans
       fonts:
-        - asset: assets/fonts/OpenSans-Bold.ttf
+        - asset: assets/fonts/primary_nova.ttf
           weight: 700
-        - asset: assets/fonts/OpenSans-Regular.ttf
+        - asset: assets/fonts/primary_nova.ttf
     - family: Quicksand
       fonts:
-        - asset: assets/fonts/Quicksand-Regular.ttf
-        - asset: assets/fonts/Quicksand-Bold.ttf
+        - asset: assets/fonts/primary_nova.ttf
+        - asset: assets/fonts/primary_nova.ttf
           weight: 700
 
   # An image asset can refer to one or more resolution-specific "variants", see

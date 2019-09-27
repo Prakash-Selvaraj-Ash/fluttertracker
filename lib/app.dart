@@ -175,29 +175,69 @@ class App extends StatelessWidget {
     initPreferences();
     initHashMap();
     firebaseCloudMessagingListeners();
+
+  /*  Map<int, Color> colorMap = {
+      50: Color.fromRGBO(255, 87, 37, .1),
+      100: Color.fromRGBO(255, 87, 37, .2),
+      200: Color.fromRGBO(255, 87, 37, .3),
+      300: Color.fromRGBO(255, 87, 37, .4),
+      400: Color.fromRGBO(255, 87, 37, .5),
+      500: Color.fromRGBO(255, 87, 37, .6),
+      600: Color.fromRGBO(255, 87, 37, .7),
+      700: Color.fromRGBO(255, 87, 37, .8),
+      800: Color.fromRGBO(255, 87, 37, .9),
+      900: Color.fromRGBO(255, 87, 37, 1),
+    };
+    MaterialColor primaryColor = MaterialColor(0xFFFF5722, colorMap);
+    Color accentColor = Color.fromARGB(255, 255, 87, 37);
+    Color iconColor = Colors.white;
+    Color textColor = Colors.white;*/
+
+    Map<int, Color> colorWhiteMap = {
+      50: Color.fromRGBO(239, 239, 239, .1),
+      100: Color.fromRGBO(239, 239, 239, .2),
+      200: Color.fromRGBO(239, 239, 239, .3),
+      300: Color.fromRGBO(239, 239, 239, .4),
+      400: Color.fromRGBO(239, 239, 239, .5),
+      500: Color.fromRGBO(239, 239, 239, .6),
+      600: Color.fromRGBO(239, 239, 239, .7),
+      700: Color.fromRGBO(239, 239, 239, .8),
+      800: Color.fromRGBO(239, 239, 239, .9),
+      900: Color.fromRGBO(239, 239, 239, 1),
+    };
+    MaterialColor primaryColor = MaterialColor(0xFFEFEFEF, colorWhiteMap);
+    Color accentColor = Color.fromARGB(255, 255, 87, 37);
+    Color iconColor = accentColor;
+     Color textColor = Colors.black;
+
+    Color buttonColor = accentColor;
+    Color buttonTextColor = Colors.white;
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
       theme: ThemeData(
           fontFamily: 'OpenSans',
-          accentColor: Colors.blue,
-          secondaryHeaderColor: Colors.amber,
-          primarySwatch: Colors.purple,
+          accentColor: accentColor,
+          secondaryHeaderColor: accentColor,
+          primarySwatch: primaryColor,
           textTheme: ThemeData.light().textTheme.copyWith(
+
                 title: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 subtitle: TextStyle(fontSize: 16),
-                button: TextStyle(fontSize: 16, color: Colors.white),
+                button: TextStyle(fontSize: 16, color: buttonTextColor,),
                 headline: TextStyle(
-                  color: Colors.blue,
+                  color: accentColor,
                   fontSize: 35,
                 ),
               ),
           buttonTheme: ThemeData.light().buttonTheme.copyWith(
-                buttonColor: Colors.blue,
+                buttonColor: buttonColor,
               ),
           appBarTheme: AppBarTheme(
+              iconTheme: ThemeData.light().accentIconTheme.copyWith(color: iconColor),
               textTheme: ThemeData.light().textTheme.copyWith(
-                  title: TextStyle(fontFamily: 'Quicksand', fontSize: 20)))),
+                  title: TextStyle(fontFamily: 'Quicksand', fontSize: 20,color: textColor)))),
       initialRoute: '/',
       onGenerateRoute: (RouteSettings settings) {
         switch (settings.name) {
@@ -249,7 +289,7 @@ class App extends StatelessWidget {
     BUS_IDS.putIfAbsent("a7a196d5-fb53-445b-a385-8e0d75e5cdd5",
         () => "adea5d3f-a898-4119-9325-a7982517b335");
     BUS_IDS.putIfAbsent("6047eb09-965a-4a61-9bbc-b8f3817024f0",
-        () => "5f98a463-722f-4e7c-9d32-5fe4993926a8");
+        () => "5f98a463-372f-4e7c-9d32-5fe4993926a8");
   }
 
   void initPreferences() async {

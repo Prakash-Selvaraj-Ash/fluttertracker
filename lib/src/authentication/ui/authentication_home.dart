@@ -94,8 +94,7 @@ class _AuthenticationHomeState extends State<AuthenticationHome> {
                         'User',
                         style: Theme.of(context)
                             .textTheme
-                            .button
-                            .copyWith(color: Colors.black),
+                            .button,
                       ),
                     ),
                   ],

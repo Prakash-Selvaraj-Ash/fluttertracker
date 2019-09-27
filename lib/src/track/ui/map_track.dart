@@ -156,8 +156,7 @@ class _MapTrackState extends State<MapTrack> with AutomaticKeepAliveClientMixin{
                                     style: Theme.of(context)
                                         .textTheme
                                         .button
-                                        .copyWith(
-                                            color: Colors.black, fontSize: 18),
+                                        .copyWith( fontSize: 18),
                                   ),
                                 ),
                               ),

@@ -165,8 +165,7 @@ class LineTrack extends StatelessWidget {
                                     style: Theme.of(context)
                                         .textTheme
                                         .button
-                                        .copyWith(
-                                            color: Colors.black, fontSize: 18),
+                                        .copyWith(fontSize: 18),
                                   ),
                                 ),
                               ),
@@ -243,7 +242,7 @@ class LineTrack extends StatelessWidget {
                                     0, _blinkingDotPosition, 0, 0),
                                 child: CircleAvatar(
                                   radius: 10,
-                                  backgroundColor: Colors.purple,
+                                  backgroundColor: Theme.of(context).accentColor,
                                   child: SizedBox(),
                                 ),
                               ),
