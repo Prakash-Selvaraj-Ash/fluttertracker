@@ -226,7 +226,7 @@ class LineTrack extends StatelessWidget {
                                   ...(_routeResponse.places as List).map((place) {
 //                                    print(_etaForPlaces[place.id]);
                                     String text = (place as PlaceResponse).name;
-                                    String etaText = ' ETA : - ';
+                                    String etaText = '';
                                     if (_etaForPlaces[place.id] != null) {
                                       etaText =
                                           ' ETA : ' + _etaForPlaces[place.id];

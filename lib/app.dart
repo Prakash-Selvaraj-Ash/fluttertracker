@@ -292,7 +292,7 @@ class App extends StatelessWidget {
     BUS_IDS.putIfAbsent("a7a196d5-fb53-445b-a385-8e0d75e5cdd5",
         () => "adea5d3f-a898-4119-9325-a7982517b335");
     BUS_IDS.putIfAbsent("6047eb09-965a-4a61-9bbc-b8f3817024f0",
-        () => "5f98a463-372f-4e7c-9d32-5fe4993926a8");
+        () => "5f98a463-722f-4e7c-9d32-5fe4993926a8");
   }
 
   void initPreferences() async {
