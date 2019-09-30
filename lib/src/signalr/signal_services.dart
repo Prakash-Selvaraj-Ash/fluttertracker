@@ -25,9 +25,9 @@ class SignalrServices extends WebClientBase {
     await _hubConnection.invoke('MapUserAndConnection', args: <Object>[userId]);
   }
 
-  close() {
+  close() async{
     if (_hubConnection != null) {
-      _hubConnection.stop();
+     await _hubConnection.stop();
     }
   }
 }

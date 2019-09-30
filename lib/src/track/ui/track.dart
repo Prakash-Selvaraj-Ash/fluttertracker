@@ -302,14 +302,14 @@ class _BusTrackState extends State<BusTrack> {
   }
 
   @override
-  void dispose() {
+  void dispose() async {
     print('dispose called');
     if (widget._timer != null) {
       widget._timer.cancel();
       widget._timer = null;
     }
     if (widget._signalrServices != null) {
-      widget._signalrServices.close();
+      await widget._signalrServices.close();
     }
     if (widget._isDriver && widget._showFinised) {
       print('clearPref called');
